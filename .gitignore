@@ -1,0 +1,37 @@
+# dependencies and generated output
+node_modules/
+dist/
+.next/
+out/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+*.log
+
+# local environment and deployment state
+.env
+.env.local
+.env.*.local
+.vercel/
+.sanity/
+
+# local product inputs, research, and QA evidence
+.local-source/
+prototypes/
+career_images/
+reference_ui/
+source-materials/
+reports/
+schemas/
+qa/
+
+# local planning/process documents are not shipping source
+*.md
+!/README.md
+
+# editor and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

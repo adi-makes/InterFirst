@@ -1,0 +1,40 @@
+{
+  "name": "@interfirst/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:application && npm run test:architecture && npm run test:metadata && npm run test:motion",
+    "test:application": "node --test tests/application-model.test.mjs tests/developer-sequence.test.mjs",
+    "test:architecture": "node --test tests/architecture.test.mjs",
+    "test:metadata": "node --test tests/metadata.test.mjs",
+    "test:motion": "node --test tests/home-motion.test.mjs",
+    "verify": "npm run lint && npm run typecheck && npm run test && npm run build"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "5.3.0",
+    "@fontsource-variable/geist-mono": "5.3.0",
+    "@phosphor-icons/react": "2.1.10",
+    "gsap": "3.13.0",
+    "next": "16.2.12",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "@tailwindcss/postcss": "4.3.3",
+    "eslint": "10.8.0",
+    "globals": "17.8.0",
+    "postcss": "8.5.25",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3"
+  }
+}

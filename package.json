@@ -1,0 +1,31 @@
+{
+  "name": "interfirst",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@11.14.1",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace=@interfirst/web",
+    "build": "npm run build --workspace=@interfirst/web",
+    "start": "npm run start --workspace=@interfirst/web",
+    "lint": "npm run lint --workspace=@interfirst/web",
+    "typecheck": "npm run typecheck --workspace=@interfirst/web",
+    "test": "npm run test --workspace=@interfirst/web",
+    "test:application": "npm run test:application --workspace=@interfirst/web",
+    "test:architecture": "npm run test:architecture --workspace=@interfirst/web",
+    "test:metadata": "npm run test:metadata --workspace=@interfirst/web",
+    "test:motion": "npm run test:motion --workspace=@interfirst/web",
+    "verify": "npm run verify --workspace=@interfirst/web"
+  },
+  "workspaces": [
+    "apps/web"
+  ],
+  "overrides": {
+    "next": {
+      "postcss": "8.5.25",
+      "sharp": "0.35.3"
+    }
+  }
+}
