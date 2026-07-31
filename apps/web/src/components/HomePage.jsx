@@ -93,7 +93,12 @@ export function HomePage() {
           .site-header--intro-pending .menu-button,
           .hero__word,
           .hero__description,
-          .hero__actions { opacity: 1 !important; transform: none !important; }
+          .hero__actions,
+          .scroll-text-reveal__content {
+            opacity: 1 !important;
+            transform: none !important;
+            animation: none !important;
+          }
         `}</style>
       </noscript>
       <AmbientEnvironment />

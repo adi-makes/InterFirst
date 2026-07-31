@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChapterLabel } from "./ChapterLabel.jsx";
 import { NextSectionCue } from "./NextSectionCue.jsx";
+import { RevealText } from "./RevealText.jsx";
 
 const steps = [
   {
@@ -101,14 +102,19 @@ export function HowWeBuildSection() {
     };
 
     const setupTimeline = async (version) => {
-      const [{ gsap }, { ScrollTrigger }] = await Promise.all([
+      const [{ gsap }, { ScrollTrigger }, { CustomEase }] = await Promise.all([
         import("gsap"),
         import("gsap/ScrollTrigger"),
+        import("gsap/CustomEase.js"),
       ]);
 
       if (disposed || version !== setupVersion || reducedMotion.matches) return;
 
-      gsap.registerPlugin(ScrollTrigger);
+      gsap.registerPlugin(ScrollTrigger, CustomEase);
+      CustomEase.create(
+        "interfirstTextReveal",
+        "0.3,1.34,0.38,1",
+      );
       const renderedSteps = stepRefs.current.filter(Boolean);
       const pathLength = progressPath.getTotalLength();
 
@@ -130,8 +136,13 @@ export function HowWeBuildSection() {
             backgroundColor: "#fafaf8",
             borderColor: "#b7bcc5",
           });
-          gsap.set(step.querySelector("h3"), { opacity: 0.6 });
-          gsap.set(step.querySelector("p"), { opacity: 0 });
+          gsap.set(step.querySelectorAll(".scroll-text-reveal__content"), {
+            opacity: 0,
+            rotationX: -25,
+            transformOrigin: "center bottom",
+            transformPerspective: 500,
+            y: "2.5rem",
+          });
         });
 
         const scrollTimeline = gsap.timeline({
@@ -171,8 +182,15 @@ export function HowWeBuildSection() {
           const markerTime =
             (((38 + index * 76) / pathHeight) * pathDuration);
           const marker = step.querySelector(".how-we-build__marker");
-          const title = step.querySelector("h3");
-          const description = step.querySelector("p");
+          const number = step.querySelector(
+            ".how-we-build__number .scroll-text-reveal__content",
+          );
+          const title = step.querySelector(
+            "h3 .scroll-text-reveal__content",
+          );
+          const description = step.querySelector(
+            "p .scroll-text-reveal__content",
+          );
 
           scrollTimeline
             .to(
@@ -186,11 +204,24 @@ export function HowWeBuildSection() {
               markerTime - 0.09,
             )
             .to(
+              number,
+              {
+                opacity: 1,
+                rotationX: 0,
+                y: 0,
+                duration: 0.28,
+                ease: "interfirstTextReveal",
+              },
+              markerTime - 0.1,
+            )
+            .to(
               title,
               {
                 opacity: 1,
-                duration: 0.22,
-                ease: "power2.out",
+                rotationX: 0,
+                y: 0,
+                duration: 0.32,
+                ease: "interfirstTextReveal",
               },
               markerTime - 0.04,
             )
@@ -198,8 +229,10 @@ export function HowWeBuildSection() {
               description,
               {
                 opacity: 1,
-                duration: 0.24,
-                ease: "power2.out",
+                rotationX: 0,
+                y: 0,
+                duration: 0.32,
+                ease: "interfirstTextReveal",
               },
               markerTime + 0.08,
             );
@@ -240,17 +273,23 @@ export function HowWeBuildSection() {
           <ChapterLabel className="how-we-build__label">
             How we build
           </ChapterLabel>
-          <h2
+          <RevealText
+            as="h2"
             className="how-we-build__title how-we-build__reveal"
+            delay={70}
             id="how-we-build-title"
           >
             <span>A clear process.</span>
             <span>No shortcuts.</span>
-          </h2>
-          <p className="how-we-build__description how-we-build__reveal">
+          </RevealText>
+          <RevealText
+            as="p"
+            className="how-we-build__description how-we-build__reveal"
+            delay={150}
+          >
             A simple system helps us stay focused, move deliberately, and
             improve continuously.
-          </p>
+          </RevealText>
           </header>
 
           <div className="how-we-build__timeline" ref={timelineRef}>
@@ -303,11 +342,20 @@ export function HowWeBuildSection() {
                     <span className="how-we-build__marker" />
                   </span>
                   <div className="how-we-build__step-content">
-                    <span className="how-we-build__number" aria-hidden="true">
+                    <RevealText
+                      as="span"
+                      className="how-we-build__number"
+                      delay={220 + index * 95}
+                      aria-hidden="true"
+                    >
                       {step.number}
-                    </span>
-                    <h3>{step.title}</h3>
-                    <p>{step.description}</p>
+                    </RevealText>
+                    <RevealText as="h3" delay={265 + index * 95}>
+                      {step.title}
+                    </RevealText>
+                    <RevealText as="p" delay={315 + index * 95}>
+                      {step.description}
+                    </RevealText>
                   </div>
                 </li>
               ))}

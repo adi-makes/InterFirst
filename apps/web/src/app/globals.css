@@ -735,6 +735,35 @@ button {
   transform: translateX(-50%);
 }
 
+/* Home chapter copy reuses the hero's clipped rise without moving layout. */
+.scroll-text-reveal__clip {
+  display: block;
+  overflow: hidden;
+  perspective: var(--motion-hero-perspective);
+}
+
+.scroll-text-reveal__content {
+  display: block;
+  opacity: 0;
+  transform: translateY(var(--motion-hero-word-rise))
+    rotateX(var(--motion-hero-word-rotate));
+  transform-origin: center bottom;
+}
+
+:is(
+    .internet-first-meaning--entered,
+    .how-we-think--entered,
+    .how-we-build--entered,
+    .what-were-building--entered,
+    .why-interfirst--entered,
+    .careers-preview--entered
+  )
+  .scroll-text-reveal__content {
+  animation: hero-word-rise var(--motion-hero-word-duration)
+    var(--motion-hero-word-easing) both;
+  animation-delay: var(--scroll-text-delay, 0ms);
+}
+
 .internet-first-meaning {
   display: grid;
   align-items: center;
@@ -1267,6 +1296,12 @@ button {
 .how-we-build--entered .how-we-build__reveal {
   opacity: 1;
   transform: translateY(0);
+}
+
+.how-we-build--scroll-ready
+  .how-we-build__step
+  .scroll-text-reveal__content {
+  animation: none;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -2323,11 +2358,13 @@ button {
   }
 
   .what-were-building__inner {
-    align-self: start;
-    padding-block: 24px 12px;
+    align-self: stretch;
+    height: 100%;
+    padding-block: 24px 64px;
   }
 
   .what-were-building__title {
+    max-width: 1200px;
     margin-top: 16px;
     font-size: clamp(38px, 3.2vw, 44px);
   }
@@ -2371,7 +2408,7 @@ button {
 
   .what-were-building__closing {
     max-width: 760px;
-    margin-top: 24px;
+    margin-top: 16px;
     line-height: 1.5;
   }
 
@@ -2914,6 +2951,12 @@ button {
     transform: none;
     animation: none !important;
     will-change: auto;
+  }
+
+  .scroll-text-reveal__content {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
   }
 
   .chapter-label {

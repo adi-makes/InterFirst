@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChapterLabel } from "./ChapterLabel.jsx";
 import { NextSectionCue } from "./NextSectionCue.jsx";
+import { RevealText } from "./RevealText.jsx";
 
 const principles = [
   {
@@ -68,29 +69,44 @@ export function InternetFirstMeaningSection() {
           <ChapterLabel className="internet-first-meaning__label">
             What internet-first means
           </ChapterLabel>
-          <h2
+          <RevealText
+            as="h2"
             className="internet-first-meaning__title meaning-reveal"
+            delay={70}
             id="internet-first-meaning-title"
           >
             <span>Internet-first isn&apos;t an industry.</span>
             <span>It&apos;s a way of building.</span>
-          </h2>
-          <p className="internet-first-meaning__description meaning-reveal">
+          </RevealText>
+          <RevealText
+            as="p"
+            className="internet-first-meaning__description meaning-reveal"
+            delay={150}
+          >
             We design products, systems, and companies around how people discover,
             use, share, and improve them through the internet.
-          </p>
+          </RevealText>
           </header>
 
           <div className="internet-first-meaning__divider" aria-hidden="true" />
 
           <ol className="internet-first-meaning__principles">
-            {principles.map((principle) => (
+            {principles.map((principle, index) => (
               <li className="internet-first-meaning__principle" key={principle.number}>
-                <span className="internet-first-meaning__number" aria-hidden="true">
+                <RevealText
+                  as="span"
+                  className="internet-first-meaning__number"
+                  delay={240 + index * 120}
+                  aria-hidden="true"
+                >
                   {principle.number}
-                </span>
-                <h3>{principle.title}</h3>
-                <p>{principle.description}</p>
+                </RevealText>
+                <RevealText as="h3" delay={290 + index * 120}>
+                  {principle.title}
+                </RevealText>
+                <RevealText as="p" delay={350 + index * 120}>
+                  {principle.description}
+                </RevealText>
               </li>
             ))}
           </ol>

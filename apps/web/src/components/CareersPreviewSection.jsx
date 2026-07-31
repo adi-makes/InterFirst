@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ActionLink } from "./ActionLink.jsx";
 import { ChapterLabel } from "./ChapterLabel.jsx";
+import { RevealText } from "./RevealText.jsx";
 
 export function CareersPreviewSection() {
   const sectionRef = useRef(null);
@@ -47,29 +48,47 @@ export function CareersPreviewSection() {
           <ChapterLabel className="careers-preview__label">
             Careers
           </ChapterLabel>
-          <h2
+          <RevealText
+            as="h2"
             className="careers-preview__title careers-preview__reveal"
+            delay={80}
             id="careers-preview-title"
           >
             <span>We’re looking for people</span>
             <span>who care about craft</span>
             <span>as much as code.</span>
-          </h2>
-          <p className="careers-preview__description careers-preview__reveal">
+          </RevealText>
+          <RevealText
+            as="p"
+            className="careers-preview__description careers-preview__reveal"
+            delay={170}
+          >
             If you’re thoughtful, curious and obsessed with building things
             well, we’d love to hear from you.
-          </p>
+          </RevealText>
           </header>
 
           <div className="careers-preview__action careers-preview__reveal">
-            <p className="careers-preview__action-label">Open positions</p>
-            <ActionLink href="/careers" showArrow>
-              See Open Roles
-            </ActionLink>
-            <p className="careers-preview__note">
+            <RevealText
+              as="p"
+              className="careers-preview__action-label"
+              delay={260}
+            >
+              Open positions
+            </RevealText>
+            <RevealText
+              as="div"
+              className="careers-preview__action-link"
+              delay={330}
+            >
+              <ActionLink href="/careers" showArrow>
+                See Open Roles
+              </ActionLink>
+            </RevealText>
+            <RevealText as="p" className="careers-preview__note" delay={400}>
               Even if there isn’t a perfect role today, we’re always interested
               in meeting exceptional builders.
-            </p>
+            </RevealText>
           </div>
         </div>
       </div>

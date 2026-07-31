@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChapterLabel } from "./ChapterLabel.jsx";
 import { NextSectionCue } from "./NextSectionCue.jsx";
+import { RevealText } from "./RevealText.jsx";
 
 const opportunities = [
   {
@@ -75,17 +76,22 @@ export function WhatWereBuildingSection() {
           <ChapterLabel className="what-were-building__label">
             What we&apos;re building
           </ChapterLabel>
-          <h2
+          <RevealText
+            as="h2"
             className="what-were-building__title what-were-building__reveal"
+            delay={70}
             id="what-were-building-title"
           >
-            <span>The internet creates endless opportunities.</span>
-            <span>These are the ones we&apos;re excited to explore.</span>
-          </h2>
-          <p className="what-were-building__description what-were-building__reveal">
+            <span>The internet creates opportunities worth exploring.</span>
+          </RevealText>
+          <RevealText
+            as="p"
+            className="what-were-building__description what-were-building__reveal"
+            delay={150}
+          >
             Not industries to chase. Problems worth solving through thoughtful
             products and companies.
-          </p>
+          </RevealText>
           </header>
 
           <ul className="what-were-building__grid">
@@ -95,19 +101,32 @@ export function WhatWereBuildingSection() {
                 key={opportunity.title}
                 style={{ "--card-index": index }}
               >
-                <span className="what-were-building__card-number" aria-hidden="true">
+                <RevealText
+                  as="span"
+                  className="what-were-building__card-number"
+                  delay={230 + index * 105}
+                  aria-hidden="true"
+                >
                   {String(index + 1).padStart(2, "0")}
-                </span>
-                <h3>{opportunity.title}</h3>
-                <p>{opportunity.description}</p>
+                </RevealText>
+                <RevealText as="h3" delay={275 + index * 105}>
+                  {opportunity.title}
+                </RevealText>
+                <RevealText as="p" delay={330 + index * 105}>
+                  {opportunity.description}
+                </RevealText>
               </li>
             ))}
           </ul>
 
-          <p className="what-were-building__closing what-were-building__reveal">
+          <RevealText
+            as="p"
+            className="what-were-building__closing what-were-building__reveal"
+            delay={820}
+          >
             The next great internet-first company may not fit an existing
             category. We&apos;re comfortable with that.
-          </p>
+          </RevealText>
         </div>
 
         <NextSectionCue href="#why-interfirst" label="Why InterFirst" />

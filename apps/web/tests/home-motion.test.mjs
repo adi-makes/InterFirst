@@ -46,3 +46,59 @@ test("keeps the navbar loop quiet and resolves every entrance under reduced moti
   assert.match(css, /\.brand-loader \{\s*display: none !important;/);
   assert.match(css, /\.brand--assembly \.brand__module,[\s\S]*animation: none !important;/);
 });
+
+test("reveals every Home chapter's text through the hero-style clipped rise", async () => {
+  const css = await readSource("src/app/globals.css");
+  const reveal = await readSource("src/components/RevealText.jsx");
+  const timeline = await readSource("src/components/HowWeBuildSection.jsx");
+  const sections = await Promise.all(
+    [
+      "InternetFirstMeaningSection.jsx",
+      "HowWeThinkSection.jsx",
+      "HowWeBuildSection.jsx",
+      "WhatWereBuildingSection.jsx",
+      "WhyInterFirstSection.jsx",
+      "CareersPreviewSection.jsx",
+    ].map((path) => readSource(`src/components/${path}`)),
+  );
+
+  assert.match(reveal, /scroll-text-reveal__clip/);
+  assert.match(reveal, /--scroll-text-delay/);
+  sections.forEach((source) => assert.match(source, /<RevealText/));
+  assert.match(css, /\.scroll-text-reveal__clip \{[\s\S]*overflow: hidden/);
+  assert.match(
+    css,
+    /\.scroll-text-reveal__content \{[\s\S]*var\(--motion-hero-word-rise\)[\s\S]*var\(--motion-hero-word-rotate\)/,
+  );
+  assert.match(
+    css,
+    /\.careers-preview--entered[\s\S]*\.scroll-text-reveal__content[\s\S]*animation: hero-word-rise/,
+  );
+  assert.match(
+    css,
+    /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.scroll-text-reveal__content \{[\s\S]*animation: none !important/,
+  );
+  assert.match(timeline, /\.how-we-build__number \.scroll-text-reveal__content/);
+  assert.match(timeline, /rotationX: -25/);
+  assert.match(
+    css,
+    /\.how-we-build--scroll-ready[\s\S]*\.scroll-text-reveal__content \{\s*animation: none;/,
+  );
+});
+
+test("keeps the concise What We're Building chapter and cue in one viewport", async () => {
+  const css = await readSource("src/app/globals.css");
+  const section = await readSource(
+    "src/components/WhatWereBuildingSection.jsx",
+  );
+
+  assert.match(
+    section,
+    /<span>The internet creates opportunities worth exploring\.<\/span>\s*<\/RevealText>/,
+  );
+  assert.doesNotMatch(section, /endless opportunities/);
+  assert.match(
+    css,
+    /@media \(min-width: 769px\) and \(max-height: 980px\)[\s\S]*\.what-were-building__inner \{[\s\S]*height: 100%;[\s\S]*padding-block: 24px 64px;/,
+  );
+});

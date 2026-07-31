@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChapterLabel } from "./ChapterLabel.jsx";
 import { NextSectionCue } from "./NextSectionCue.jsx";
+import { RevealText } from "./RevealText.jsx";
 
 const standards = [
   {
@@ -74,17 +75,23 @@ export function WhyInterFirstSection() {
           <ChapterLabel className="why-interfirst__label">
             Why InterFirst
           </ChapterLabel>
-          <h2
+          <RevealText
+            as="h2"
             className="why-interfirst__title why-interfirst__reveal"
+            delay={70}
             id="why-interfirst-title"
           >
             <span>We believe good products</span>
             <span>are built with care.</span>
-          </h2>
-          <p className="why-interfirst__description why-interfirst__reveal">
+          </RevealText>
+          <RevealText
+            as="p"
+            className="why-interfirst__description why-interfirst__reveal"
+            delay={150}
+          >
             The details most people overlook are often the ones that make
             products feel effortless.
-          </p>
+          </RevealText>
           </header>
 
           <ul className="why-interfirst__standards">
@@ -94,8 +101,12 @@ export function WhyInterFirstSection() {
                 key={standard.title}
                 style={{ "--standard-index": index }}
               >
-                <h3>{standard.title}</h3>
-                <p>{standard.description}</p>
+                <RevealText as="h3" delay={220 + index * 115}>
+                  {standard.title}
+                </RevealText>
+                <RevealText as="p" delay={280 + index * 115}>
+                  {standard.description}
+                </RevealText>
               </li>
             ))}
           </ul>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ChapterLabel } from "./ChapterLabel.jsx";
 import { NextSectionCue } from "./NextSectionCue.jsx";
+import { RevealText } from "./RevealText.jsx";
 
 const principles = [
   {
@@ -69,23 +70,34 @@ export function HowWeThinkSection() {
           <ChapterLabel className="how-we-think__label">
             How we think
           </ChapterLabel>
-          <h2
+          <RevealText
+            as="h2"
             className="how-we-think__title how-we-think__reveal"
+            delay={70}
             id="how-we-think-title"
           >
             <span>Good products are built with</span>
             <span>clear thinking, not bigger teams.</span>
-          </h2>
+          </RevealText>
           </header>
 
           <ol className="how-we-think__principles">
-            {principles.map((principle) => (
+            {principles.map((principle, index) => (
               <li className="how-we-think__principle" key={principle.number}>
-                <span className="how-we-think__number" aria-hidden="true">
+                <RevealText
+                  as="span"
+                  className="how-we-think__number"
+                  delay={190 + index * 120}
+                  aria-hidden="true"
+                >
                   {principle.number}
-                </span>
-                <h3>{principle.title}</h3>
-                <p>{principle.description}</p>
+                </RevealText>
+                <RevealText as="h3" delay={240 + index * 120}>
+                  {principle.title}
+                </RevealText>
+                <RevealText as="p" delay={300 + index * 120}>
+                  {principle.description}
+                </RevealText>
               </li>
             ))}
           </ol>
