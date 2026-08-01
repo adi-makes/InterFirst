@@ -24,6 +24,9 @@ const stepLabels = [
 
 const applicationWheelSpeed = 1.65;
 const mobileApplicationWheelSpeed = 2.35;
+const mobileTouchScrollSpeed = 1.6;
+const mobileTouchInertiaTimeConstantMs = 220;
+const mobileTouchMaximumVelocity = 2.4;
 
 function routeApplicationWheel(event) {
   if (
@@ -385,8 +388,103 @@ export function ApplicationExperience({ onExit }) {
   useEffect(() => {
     const form = formRef.current;
     if (!form) return undefined;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let lastTouchY = 0;
+    let lastTouchTime = 0;
+    let touchVelocity = 0;
+    let directionLocked = false;
+    let verticalGesture = false;
+    let inertiaFrame = 0;
+
+    const cancelInertia = () => {
+      window.cancelAnimationFrame(inertiaFrame);
+      inertiaFrame = 0;
+    };
+
+    const onTouchStart = (event) => {
+      cancelInertia();
+      if (!window.matchMedia("(max-width: 640px)").matches || event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      lastTouchY = touch.clientY;
+      lastTouchTime = window.performance.now();
+      touchVelocity = 0;
+      directionLocked = false;
+      verticalGesture = false;
+    };
+
+    const onTouchMove = (event) => {
+      if (!window.matchMedia("(max-width: 640px)").matches || event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      const totalX = touch.clientX - touchStartX;
+      const totalY = touch.clientY - touchStartY;
+
+      if (!directionLocked) {
+        if (Math.hypot(totalX, totalY) < 6) return;
+        directionLocked = true;
+        verticalGesture = Math.abs(totalY) > Math.abs(totalX);
+      }
+      if (!verticalGesture) return;
+
+      event.preventDefault();
+      const now = window.performance.now();
+      const elapsed = Math.max(now - lastTouchTime, 8);
+      const routedDelta = (lastTouchY - touch.clientY) * mobileTouchScrollSpeed;
+      const scrollElement = document.scrollingElement || document.documentElement;
+      scrollElement.scrollTop += routedDelta;
+
+      const instantaneousVelocity = routedDelta / elapsed;
+      touchVelocity = touchVelocity * 0.62 + instantaneousVelocity * 0.38;
+      touchVelocity = Math.min(
+        Math.max(touchVelocity, -mobileTouchMaximumVelocity),
+        mobileTouchMaximumVelocity,
+      );
+      lastTouchY = touch.clientY;
+      lastTouchTime = now;
+    };
+
+    const finishTouch = (withInertia) => {
+      if (!verticalGesture || !withInertia) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const scrollElement = document.scrollingElement || document.documentElement;
+      let previousTime = window.performance.now();
+
+      const applyInertia = (timestamp) => {
+        const elapsed = Math.min(timestamp - previousTime, 32);
+        previousTime = timestamp;
+        const before = scrollElement.scrollTop;
+        scrollElement.scrollTop += touchVelocity * elapsed;
+        touchVelocity *= Math.exp(-elapsed / mobileTouchInertiaTimeConstantMs);
+
+        if (Math.abs(touchVelocity) > 0.025 && scrollElement.scrollTop !== before) {
+          inertiaFrame = window.requestAnimationFrame(applyInertia);
+        } else {
+          inertiaFrame = 0;
+        }
+      };
+
+      inertiaFrame = window.requestAnimationFrame(applyInertia);
+    };
+
+    const onTouchEnd = () => finishTouch(true);
+    const onTouchCancel = () => finishTouch(false);
+
     form.addEventListener("wheel", routeApplicationWheel, { capture: true, passive: false });
-    return () => form.removeEventListener("wheel", routeApplicationWheel, { capture: true });
+    form.addEventListener("touchstart", onTouchStart, { capture: true, passive: true });
+    form.addEventListener("touchmove", onTouchMove, { capture: true, passive: false });
+    form.addEventListener("touchend", onTouchEnd, { capture: true, passive: true });
+    form.addEventListener("touchcancel", onTouchCancel, { capture: true, passive: true });
+    return () => {
+      cancelInertia();
+      form.removeEventListener("wheel", routeApplicationWheel, { capture: true });
+      form.removeEventListener("touchstart", onTouchStart, { capture: true });
+      form.removeEventListener("touchmove", onTouchMove, { capture: true });
+      form.removeEventListener("touchend", onTouchEnd, { capture: true });
+      form.removeEventListener("touchcancel", onTouchCancel, { capture: true });
+    };
   }, [showExitConfirmation, submissionState]);
 
   const onChange = (field, value) => {
