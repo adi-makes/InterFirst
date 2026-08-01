@@ -108,6 +108,10 @@ test("unlocks one freely scrollable question set for every role", async () => {
   assert.match(css, /\.application-checkpoint \{[\s\S]*touch-action: pan-y pinch-zoom;/);
   assert.match(css, /\.application-checkpoint__card \{[\s\S]*overflow: clip;[\s\S]*touch-action: pan-y pinch-zoom;/);
   assert.doesNotMatch(css, /\.application-checkpoint__card \{[\s\S]*overflow: hidden;/);
+  assert.match(css, /\.application-panel \{[\s\S]*overflow: visible;/);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.application-field input,[\s\S]*\.application-field textarea,[\s\S]*\.application-choice__options span,[\s\S]*touch-action: auto;/);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.application-checkpoint__card \{ overflow: visible; border-radius: 14px; \}/);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.application-field textarea \{ resize: none; \}/);
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.careers-sequence \{[\s\S]*background-image: var\(--careers-sequence-fallback\);/);
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.careers-sequence canvas \{\s*display: none;/);
   assert.doesNotMatch(css, /application-mobile-statement/);
