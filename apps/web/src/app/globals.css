@@ -232,7 +232,17 @@ button {
   backdrop-filter: blur(14px);
 }
 
+.site-header--menu-open,
+.site-header--menu-open.site-header--scrolled {
+  height: 64px;
+  border-color: var(--border);
+  background: var(--background);
+  backdrop-filter: none;
+}
+
 .site-header__inner {
+  position: relative;
+  z-index: 20;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -348,9 +358,10 @@ button {
 .menu-button {
   display: none;
   align-items: center;
-  min-height: 44px;
-  gap: 8px;
-  padding: 8px 10px;
+  justify-content: center;
+  width: 48px;
+  min-height: 48px;
+  padding: 0;
   border: 1px solid var(--border-strong);
   border-radius: 8px;
   background: transparent;
@@ -360,29 +371,42 @@ button {
 .mobile-navigation {
   position: fixed;
   z-index: 19;
-  inset: 64px 0 auto;
-  border-bottom: 1px solid var(--border-strong);
-  background: color-mix(in srgb, var(--background) 96%, transparent);
-  backdrop-filter: blur(14px);
+  inset: 0;
+  min-height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--background);
+  animation: mobile-navigation-enter 220ms ease-out both;
 }
 
 .mobile-navigation__inner {
   display: grid;
+  width: min(calc(100% - 48px), 720px);
+  min-height: 100dvh;
+  align-content: center;
   gap: 0;
-  padding: 12px 24px 24px;
+  padding: max(96px, calc(env(safe-area-inset-top) + 88px)) 0 max(32px, env(safe-area-inset-bottom));
+  margin-inline: auto;
 }
 
 .mobile-navigation__inner > a:not(.action-link) {
   display: flex;
   align-items: center;
-  min-height: 52px;
+  min-height: 76px;
   border-bottom: 1px solid var(--border);
-  font-size: 18px;
-  font-weight: 500;
+  font-size: clamp(32px, 8vw, 48px);
+  font-weight: 520;
+  letter-spacing: -0.04em;
 }
 
 .mobile-navigation .action-link {
-  margin-top: 20px;
+  width: 100%;
+  margin-top: 32px;
+}
+
+@keyframes mobile-navigation-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .action-link {
@@ -2815,7 +2839,6 @@ button {
   }
 
   .menu-button {
-    padding-inline: 8px;
     border-color: transparent;
   }
 
@@ -2935,6 +2958,10 @@ button {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .mobile-navigation {
+    animation: none;
   }
 
   *,

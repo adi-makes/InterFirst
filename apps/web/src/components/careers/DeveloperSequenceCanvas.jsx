@@ -1,82 +1,42 @@
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   careersSequence,
-  easeSequencePlaybackRate,
   getSequenceFramePath,
   getSequenceSceneFrame,
-  getSequenceSegment,
-  wrapSequenceFrame,
 } from "../../careers/developerSequence.js";
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-function createFrameIndexes(start, end) {
-  const first = Math.min(start, end);
-  const last = Math.max(start, end);
-  return Array.from({ length: last - first + 1 }, (_, index) => first + index);
-}
-
-export const CareersSequenceCanvas = forwardRef(function CareersSequenceCanvas(
-  { currentScene, onLoadingChange },
-  ref,
-) {
+export function CareersSequenceCanvas({ enabled, onLoadingChange, scrollContainerRef }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const contextRef = useRef(null);
   const framesRef = useRef(new Map());
   const promisesRef = useRef(new Map());
   const failedRef = useRef(new Set());
-  const animationFrameRef = useRef(0);
-  const drawRequestRef = useRef(0);
-  const idleHandleRef = useRef(null);
-  const idleTimerRef = useRef(null);
-  const transitionRef = useRef(null);
-  const boostUntilRef = useRef(0);
-  const boostDirectionRef = useRef(1);
-  const playbackRateRef = useRef(careersSequence.ambientFramesPerSecond);
-  const lastPlaybackTimeRef = useRef(null);
-  const currentFrameRef = useRef(getSequenceSceneFrame(currentScene));
-  const currentSceneRef = useRef(currentScene);
-  const mountedRef = useRef(false);
-  const visibleRef = useRef(typeof document === "undefined" || !document.hidden);
+  const targetFrameRef = useRef(0);
+  const displayedFrameRef = useRef(0);
+  const renderedFrameRef = useRef(0);
+  const animationRequestRef = useRef(0);
+  const scrollRequestRef = useRef(0);
+  const lastAnimationTimeRef = useRef(0);
+  const drawTokenRef = useRef(0);
   const reducedMotionRef = useRef(false);
-  const [fallbackPath, setFallbackPath] = useState(() =>
-    getSequenceFramePath(getSequenceSceneFrame(currentScene)),
-  );
+  const enabledRef = useRef(enabled);
+  const [fallbackPath] = useState(() => getSequenceFramePath(0));
 
-  const drawFrame = useCallback((requestedIndex) => {
+  const drawFramePosition = useCallback((framePosition) => {
     const canvas = canvasRef.current;
     const context = contextRef.current;
-    if (!canvas || !context) return false;
-
-    const framePosition = wrapSequenceFrame(requestedIndex);
-    const lowerIndex = Math.floor(framePosition);
-    const upperIndex = (lowerIndex + 1) % careersSequence.frameCount;
-    const blend = framePosition - lowerIndex;
-    let lowerImage = framesRef.current.get(lowerIndex);
-    let upperImage = framesRef.current.get(upperIndex);
-
-    if (!lowerImage && !upperImage) {
-      for (let offset = 1; offset < careersSequence.frameCount; offset += 1) {
-        lowerImage =
-          framesRef.current.get(lowerIndex - offset) ||
-          framesRef.current.get(upperIndex + offset);
-        if (lowerImage) break;
-      }
+    const lowerIndex = clamp(Math.floor(framePosition), 0, careersSequence.frameCount - 1);
+    const upperIndex = clamp(Math.ceil(framePosition), 0, careersSequence.frameCount - 1);
+    const lowerImage = framesRef.current.get(lowerIndex);
+    const upperImage = framesRef.current.get(upperIndex);
+    if (!canvas || !context || !lowerImage?.naturalWidth || !lowerImage?.naturalHeight) {
+      return false;
     }
 
-    lowerImage ||= upperImage;
-    upperImage ||= lowerImage;
-    if (!lowerImage?.naturalWidth || !lowerImage?.naturalHeight) return false;
-
-    const drawCover = (image, alpha) => {
+    const drawCover = (image) => {
       const scale = Math.max(
         canvas.width / image.naturalWidth,
         canvas.height / image.naturalHeight,
@@ -85,35 +45,30 @@ export const CareersSequenceCanvas = forwardRef(function CareersSequenceCanvas(
       const drawHeight = image.naturalHeight * scale;
       const x = (canvas.width - drawWidth) / 2;
       const y = (canvas.height - drawHeight) / 2;
-      context.globalAlpha = alpha;
       context.drawImage(image, x, y, drawWidth, drawHeight);
     };
 
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    drawCover(lowerImage, 1);
-    if (
-      careersSequence.interpolateFrames &&
-      upperImage !== lowerImage &&
-      blend > 0
-    ) {
-      drawCover(upperImage, blend);
-    }
     context.globalAlpha = 1;
-    currentFrameRef.current = framePosition;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    drawCover(lowerImage);
+
+    const blend = framePosition - lowerIndex;
+    if (blend > 0 && upperImage?.naturalWidth && upperImage?.naturalHeight) {
+      context.globalAlpha = blend;
+      drawCover(upperImage);
+      context.globalAlpha = 1;
+    }
+
+    renderedFrameRef.current = Math.round(framePosition);
     containerRef.current.dataset.frameIndex = String(Math.round(framePosition));
     containerRef.current.dataset.framePosition = framePosition.toFixed(3);
     return true;
   }, []);
 
-  const scheduleDraw = useCallback((frameIndex) => {
-    window.cancelAnimationFrame(drawRequestRef.current);
-    drawRequestRef.current = window.requestAnimationFrame(() => drawFrame(frameIndex));
-  }, [drawFrame]);
-
-  const loadFrame = useCallback((frameIndex) => {
-    const index = clamp(Math.round(frameIndex), 0, careersSequence.frameCount - 1);
+  const loadFrame = useCallback((requestedIndex) => {
+    const index = clamp(Math.round(requestedIndex), 0, careersSequence.frameCount - 1);
     if (framesRef.current.has(index)) return Promise.resolve(framesRef.current.get(index));
     if (failedRef.current.has(index)) return Promise.resolve(null);
     if (promisesRef.current.has(index)) return promisesRef.current.get(index);
@@ -125,14 +80,13 @@ export const CareersSequenceCanvas = forwardRef(function CareersSequenceCanvas(
         try {
           await image.decode();
         } catch {
-          // A loaded image is still drawable when decode() is unavailable or rejects.
+          // The loaded PNG remains drawable when decode() is unavailable.
         }
-        if (mountedRef.current) {
-          framesRef.current.set(index, image);
-          while (framesRef.current.size > 72) {
-            const oldestIndex = framesRef.current.keys().next().value;
-            framesRef.current.delete(oldestIndex);
-          }
+        framesRef.current.set(index, image);
+        while (framesRef.current.size > 64) {
+          const oldestIndex = framesRef.current.keys().next().value;
+          if (Math.abs(oldestIndex - renderedFrameRef.current) <= 1) break;
+          framesRef.current.delete(oldestIndex);
         }
         promisesRef.current.delete(index);
         resolve(image);
@@ -149,79 +103,118 @@ export const CareersSequenceCanvas = forwardRef(function CareersSequenceCanvas(
     return promise;
   }, []);
 
-  const loadRange = useCallback(async (start, end) => {
-    const indexes = createFrameIndexes(start, end);
-    const images = await Promise.all(indexes.map(loadFrame));
-    return images.some(Boolean);
+  const loadFramePair = useCallback((framePosition) => {
+    const lowerIndex = Math.floor(framePosition);
+    const upperIndex = Math.ceil(framePosition);
+    return Promise.all([loadFrame(lowerIndex), loadFrame(upperIndex)]);
   }, [loadFrame]);
 
-  const prepareSegment = useCallback(async (segmentIndex) => {
-    if (segmentIndex < 0 || segmentIndex >= careersSequence.segmentCount) return true;
-    const { start, end } = getSequenceSegment(segmentIndex);
-    onLoadingChange?.(true);
-    const hasFrame = await loadRange(start, end);
-    onLoadingChange?.(false);
-    return hasFrame;
-  }, [loadRange, onLoadingChange]);
+  const animateTowardTarget = useCallback((timestamp) => {
+    const target = targetFrameRef.current;
+    const current = displayedFrameRef.current;
+    const elapsed = lastAnimationTimeRef.current
+      ? Math.min(timestamp - lastAnimationTimeRef.current, 64)
+      : 1000 / careersSequence.minimumPlaybackFps;
+    lastAnimationTimeRef.current = timestamp;
 
-  useImperativeHandle(ref, () => ({
-    prepareSegment,
-    async playSegment(segmentIndex, direction) {
-      const { start, end } = getSequenceSegment(segmentIndex);
-      const to = direction === "backward" ? start : end;
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      containerRef.current.dataset.segment = String(segmentIndex);
-      containerRef.current.dataset.direction = direction;
+    const distance = target - current;
+    const shouldSettleImmediately = reducedMotionRef.current || !enabledRef.current;
+    const blendAmount = 1 - Math.exp(-elapsed / careersSequence.smoothingTimeConstantMs);
+    const nextPosition = shouldSettleImmediately || Math.abs(distance) <= careersSequence.settleThreshold
+      ? target
+      : current + distance * blendAmount;
 
-      if (reducedMotion || !contextRef.current) {
-        await loadFrame(to);
-        setFallbackPath(getSequenceFramePath(to));
-        scheduleDraw(to);
-        delete containerRef.current.dataset.segment;
-        delete containerRef.current.dataset.direction;
-        return;
-      }
+    displayedFrameRef.current = nextPosition;
+    const drawToken = ++drawTokenRef.current;
+    loadFramePair(nextPosition).then(() => {
+      if (drawTokenRef.current === drawToken) drawFramePosition(nextPosition);
+    });
 
-      prepareSegment(segmentIndex);
-      boostDirectionRef.current = direction === "backward" ? -1 : 1;
-      boostUntilRef.current = performance.now() + careersSequence.transitionDuration;
-      containerRef.current.dataset.playbackMode = "boosted";
+    if (nextPosition !== target) {
+      animationRequestRef.current = window.requestAnimationFrame(animateTowardTarget);
+    } else {
+      animationRequestRef.current = 0;
+      lastAnimationTimeRef.current = 0;
+    }
+  }, [drawFramePosition, loadFramePair]);
 
-      return new Promise((resolve) => {
-        const timer = window.setTimeout(() => {
-          if (transitionRef.current?.timer !== timer) return;
-          transitionRef.current = null;
-          containerRef.current.dataset.playbackMode = "ambient";
-          delete containerRef.current.dataset.segment;
-          delete containerRef.current.dataset.direction;
-          resolve();
-        }, careersSequence.transitionDuration);
-        transitionRef.current = { timer, resolve };
-      });
-    },
-    showScene(sceneIndex) {
-      const frameIndex = getSequenceSceneFrame(sceneIndex);
-      setFallbackPath(getSequenceFramePath(frameIndex));
-      loadFrame(frameIndex).then(() => {
-        if (reducedMotionRef.current) {
-          currentFrameRef.current = frameIndex;
-          scheduleDraw(frameIndex);
-        }
-      });
-    },
-  }), [loadFrame, prepareSegment, scheduleDraw]);
+  const requestFrame = useCallback((requestedIndex) => {
+    const framePosition = clamp(requestedIndex, 0, careersSequence.frameCount - 1);
+    const targetIndex = Math.round(framePosition);
+    targetFrameRef.current = framePosition;
+
+    const targetReady = framesRef.current.has(Math.floor(framePosition))
+      && framesRef.current.has(Math.ceil(framePosition));
+    onLoadingChange?.(!targetReady);
+    loadFramePair(framePosition).then(() => onLoadingChange?.(false));
+
+    for (let offset = 1; offset <= careersSequence.preloadRadius; offset += 1) {
+      loadFrame(targetIndex + offset);
+      loadFrame(targetIndex - offset);
+    }
+
+    if (!animationRequestRef.current) {
+      animationRequestRef.current = window.requestAnimationFrame(animateTowardTarget);
+    }
+  }, [animateTowardTarget, loadFrame, loadFramePair, onLoadingChange]);
+
+  const updateFromScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    const sequence = containerRef.current;
+    if (!container || !sequence) return;
+
+    if (!enabledRef.current || reducedMotionRef.current) {
+      sequence.dataset.playbackMode = reducedMotionRef.current ? "reduced" : "idle";
+      requestFrame(0);
+      return;
+    }
+
+    const headerHeight = document.querySelector(".application-header")?.getBoundingClientRect().height || 0;
+    const checkpoints = [...container.querySelectorAll("[data-application-checkpoint]")];
+    const checkpointTops = checkpoints.map(
+      (checkpoint) => checkpoint.getBoundingClientRect().top + window.scrollY,
+    );
+    const scrollPosition = window.scrollY + headerHeight;
+    let sceneIndex = 0;
+
+    for (let index = 1; index < checkpointTops.length; index += 1) {
+      if (scrollPosition >= checkpointTops[index]) sceneIndex = index;
+      else break;
+    }
+
+    const startFrame = getSequenceSceneFrame(sceneIndex);
+    const nextTop = checkpointTops[sceneIndex + 1];
+    let frameIndex = startFrame;
+
+    if (Number.isFinite(nextTop)) {
+      const startTop = checkpointTops[sceneIndex];
+      const segmentProgress = clamp(
+        (scrollPosition - startTop) / Math.max(nextTop - startTop, 1),
+        0,
+        1,
+      );
+      const endFrame = getSequenceSceneFrame(sceneIndex + 1);
+      frameIndex = startFrame + (endFrame - startFrame) * segmentProgress;
+    }
+
+    const progress = frameIndex / (careersSequence.frameCount - 1);
+
+    sequence.dataset.playbackMode = "scroll";
+    sequence.dataset.scrollProgress = progress.toFixed(4);
+    requestFrame(frameIndex);
+  }, [requestFrame, scrollContainerRef]);
 
   useEffect(() => {
-    mountedRef.current = true;
+    enabledRef.current = enabled;
+    updateFromScroll();
+  }, [enabled, updateFromScroll]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return undefined;
 
-    contextRef.current = canvas.getContext("2d", {
-      alpha: false,
-      desynchronized: true,
-    });
-
+    contextRef.current = canvas.getContext("2d", { alpha: false, desynchronized: true });
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     reducedMotionRef.current = motionQuery.matches;
 
@@ -241,136 +234,46 @@ export const CareersSequenceCanvas = forwardRef(function CareersSequenceCanvas(
       contextRef.current.imageSmoothingQuality = "high";
       container.dataset.outputWidth = String(canvas.width);
       container.dataset.outputHeight = String(canvas.height);
-      scheduleDraw(currentFrameRef.current);
+      updateFromScroll();
     };
 
     const resizeObserver = new ResizeObserver(resize);
-    resizeObserver.observe(container);
-    resize();
-
-    const initialFrame = getSequenceSceneFrame(currentSceneRef.current);
-    loadFrame(initialFrame).then(() => {
-      scheduleDraw(initialFrame);
-    });
-
-    const onVisibilityChange = () => {
-      visibleRef.current = !document.hidden;
-      lastPlaybackTimeRef.current = null;
+    const onScroll = () => {
+      window.cancelAnimationFrame(scrollRequestRef.current);
+      scrollRequestRef.current = window.requestAnimationFrame(updateFromScroll);
     };
     const onMotionPreferenceChange = (event) => {
       reducedMotionRef.current = event.matches;
-      lastPlaybackTimeRef.current = null;
-      if (event.matches) {
-        currentFrameRef.current = getSequenceSceneFrame(currentSceneRef.current);
-        container.dataset.playbackMode = "reduced";
-        scheduleDraw(currentFrameRef.current);
-      } else {
-        container.dataset.playbackMode = "ambient";
-      }
+      updateFromScroll();
     };
-    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    resizeObserver.observe(container);
+    window.addEventListener("scroll", onScroll, { passive: true });
     motionQuery.addEventListener?.("change", onMotionPreferenceChange);
-
-    container.dataset.playbackMode = reducedMotionRef.current ? "reduced" : "ambient";
-    const tick = (now) => {
-      if (!mountedRef.current) return;
-
-      if (!visibleRef.current || reducedMotionRef.current) {
-        lastPlaybackTimeRef.current = now;
-        animationFrameRef.current = window.requestAnimationFrame(tick);
-        return;
-      }
-
-      const previousTime = lastPlaybackTimeRef.current ?? now;
-      const elapsedSeconds = Math.min(Math.max(now - previousTime, 0), 80) / 1000;
-      lastPlaybackTimeRef.current = now;
-      const boosted = now < boostUntilRef.current;
-      const targetFramesPerSecond = boosted
-        ? careersSequence.boostedFramesPerSecond
-        : careersSequence.ambientFramesPerSecond;
-      const direction = boosted ? boostDirectionRef.current : 1;
-      const targetPlaybackRate = targetFramesPerSecond * direction;
-      playbackRateRef.current = easeSequencePlaybackRate(
-        playbackRateRef.current,
-        targetPlaybackRate,
-        elapsedSeconds,
-      );
-      const nextFrame =
-        currentFrameRef.current + playbackRateRef.current * elapsedSeconds;
-      const normalizedFrame = wrapSequenceFrame(nextFrame);
-      const lowerIndex = Math.floor(normalizedFrame);
-      const upperIndex = (lowerIndex + 1) % careersSequence.frameCount;
-
-      currentFrameRef.current = normalizedFrame;
-      loadFrame(lowerIndex);
-      loadFrame(upperIndex);
-      drawFrame(normalizedFrame);
-      container.dataset.playbackMode = boosted ? "boosted" : "ambient";
-      container.dataset.framesPerSecond = playbackRateRef.current.toFixed(3);
-      animationFrameRef.current = window.requestAnimationFrame(tick);
-    };
-    animationFrameRef.current = window.requestAnimationFrame(tick);
+    loadFrame(0).then(() => {
+      resize();
+      requestFrame(0);
+    });
 
     const decodedFrames = framesRef.current;
     const pendingFrames = promisesRef.current;
-
     return () => {
-      mountedRef.current = false;
       resizeObserver.disconnect();
-      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("scroll", onScroll);
       motionQuery.removeEventListener?.("change", onMotionPreferenceChange);
-      window.cancelAnimationFrame(animationFrameRef.current);
-      window.cancelAnimationFrame(drawRequestRef.current);
-      if (idleHandleRef.current !== null && "cancelIdleCallback" in window) {
-        window.cancelIdleCallback(idleHandleRef.current);
-      }
-      window.clearTimeout(idleTimerRef.current);
-      if (transitionRef.current) {
-        window.clearTimeout(transitionRef.current.timer);
-        transitionRef.current.resolve();
-      }
-      transitionRef.current = null;
+      window.cancelAnimationFrame(scrollRequestRef.current);
+      window.cancelAnimationFrame(animationRequestRef.current);
       decodedFrames.clear();
       pendingFrames.clear();
       contextRef.current = null;
     };
-  }, [drawFrame, loadFrame, scheduleDraw]);
-
-  useEffect(() => {
-    currentSceneRef.current = currentScene;
-    const endpoint = getSequenceSceneFrame(currentScene);
-    setFallbackPath(getSequenceFramePath(endpoint));
-    loadFrame(endpoint).then(() => {
-      if (reducedMotionRef.current) scheduleDraw(endpoint);
-    });
-
-    const adjacentSegments = [currentScene - 1, currentScene].filter(
-      (segment) => segment >= 0 && segment < careersSequence.segmentCount,
-    );
-    Promise.all(adjacentSegments.map(prepareSegment)).then(() => {
-      const loadRemaining = async () => {
-        for (let index = 0; index < careersSequence.frameCount; index += 1) {
-          if (!mountedRef.current) return;
-          if (!framesRef.current.has(index) && !promisesRef.current.has(index)) {
-            await loadFrame(index);
-          }
-        }
-      };
-
-      if ("requestIdleCallback" in window) {
-        if (idleHandleRef.current !== null) window.cancelIdleCallback(idleHandleRef.current);
-        idleHandleRef.current = window.requestIdleCallback(loadRemaining, { timeout: 2500 });
-      } else {
-        window.clearTimeout(idleTimerRef.current);
-        idleTimerRef.current = window.setTimeout(loadRemaining, 400);
-      }
-    });
-  }, [currentScene, loadFrame, prepareSegment, scheduleDraw]);
+  }, [loadFrame, requestFrame, updateFromScroll]);
 
   return (
     <div
       aria-hidden="true"
       className="careers-sequence"
+      data-minimum-frame-rate={careersSequence.minimumPlaybackFps}
       ref={containerRef}
       style={{ "--careers-sequence-fallback": `url(${fallbackPath})` }}
     >
@@ -378,6 +281,6 @@ export const CareersSequenceCanvas = forwardRef(function CareersSequenceCanvas(
       <div className="careers-sequence__veil" />
     </div>
   );
-});
+}
 
 export const DeveloperSequenceCanvas = CareersSequenceCanvas;

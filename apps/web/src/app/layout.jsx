@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./careers-scroll.css";
 
 const siteName = "InterFirst";
 const siteTitle = "InterFirst — We build internet-first companies";

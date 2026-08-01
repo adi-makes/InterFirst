@@ -1,37 +1,26 @@
 export const careersSequence = Object.freeze({
   folderPath: "/images/careers/frames",
-  frameCount: 199,
-  firstFrameNumber: 2,
-  extension: "jpg",
+  frameCount: 192,
+  firstFrameNumber: 1,
+  extension: "png",
   filenamePrefix: "ezgif-frame-",
   filenamePadding: 3,
-  transitionDuration: 960,
-  ambientFramesPerSecond: 8,
-  boostedFramesPerSecond: 15,
-  playbackRateResponse: 8,
   segmentCount: 7,
   mobileFolderPath: null,
   maxDevicePixelRatio: 2,
   maxCanvasWidth: 3840,
   maxCanvasHeight: 2160,
+  preloadRadius: 8,
   interpolateFrames: true,
+  minimumPlaybackFps: 24,
+  smoothingTimeConstantMs: 72,
+  settleThreshold: 0.01,
 });
 
 export const developerSequence = careersSequence;
 
 export function wrapSequenceFrame(frameIndex, config = careersSequence) {
   return ((frameIndex % config.frameCount) + config.frameCount) % config.frameCount;
-}
-
-export function easeSequencePlaybackRate(
-  currentRate,
-  targetRate,
-  elapsedSeconds,
-  config = careersSequence,
-) {
-  const rateBlend =
-    1 - Math.exp(-config.playbackRateResponse * Math.max(elapsedSeconds, 0));
-  return currentRate + (targetRate - currentRate) * rateBlend;
 }
 
 export function getSequenceFrameNumber(frameIndex, config = careersSequence) {

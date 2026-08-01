@@ -2,28 +2,25 @@ export const DRAFT_SCHEMA_VERSION = 2;
 export const DRAFT_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
 export const DRAFT_STORAGE_PREFIX = "interfirst.application-draft";
 
+const sharedApplicationConfiguration = Object.freeze({
+  evidenceOptions: ["Portfolio", "Project", "Case study"],
+  workHeading: "Show us work you're proud of.",
+  question: "Tell us about a problem you genuinely enjoyed solving.",
+  confirmation: "Thanks for showing us how you think and work.",
+});
+
 export const roleConfigurations = {
   developer: {
     label: "Developer",
-    evidenceOptions: ["GitHub", "Portfolio", "Project URL"],
-    workHeading: "Show us something you've built.",
-    question:
-      "Tell us about a technical problem you genuinely enjoyed solving.",
-    confirmation: "Thanks for showing us how you build.",
+    ...sharedApplicationConfiguration,
   },
   designer: {
     label: "Designer",
-    evidenceOptions: ["Portfolio", "Case study", "Project"],
-    workHeading: "Show us work you're proud of.",
-    question: "Tell us about a design decision that made a project better.",
-    confirmation: "Thanks for showing us how you think.",
+    ...sharedApplicationConfiguration,
   },
   marketer: {
     label: "Marketer",
-    evidenceOptions: ["Campaign", "Case study", "Project"],
-    workHeading: "Show us relevant work.",
-    question: "Tell us about something you helped grow.",
-    confirmation: "Thanks for showing us how you make ideas matter.",
+    ...sharedApplicationConfiguration,
   },
 };
 

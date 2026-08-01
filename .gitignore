@@ -18,6 +18,7 @@ test-results/
 
 # local product inputs, research, and QA evidence
 .local-source/
+hq_img_desktop/
 prototypes/
 career_images/
 reference_ui/

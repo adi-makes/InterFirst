@@ -47,6 +47,23 @@ test("keeps the navbar loop quiet and resolves every entrance under reduced moti
   assert.match(css, /\.brand--assembly \.brand__module,[\s\S]*animation: none !important;/);
 });
 
+test("uses an icon-only full-screen mobile navigation", async () => {
+  const header = await readSource("src/components/SiteHeader.jsx");
+  const css = await readSource("src/app/globals.css");
+
+  assert.match(header, /aria-label=\{menuOpen \? "Close navigation" : "Open navigation"\}/);
+  assert.doesNotMatch(header, /<span>Menu<\/span>/);
+  assert.match(header, /mobileNavigationRef/);
+  assert.match(header, /document\.documentElement\.style\.overflow = "hidden"/);
+  assert.match(header, /region\.setAttribute\("inert", ""\)/);
+  assert.match(header, /event\.key !== "Tab"/);
+  assert.match(header, /window\.matchMedia\("\(min-width: 961px\)"\)/);
+  assert.match(css, /\.mobile-navigation \{[\s\S]*inset: 0;[\s\S]*min-height: 100dvh;/);
+  assert.match(css, /\.mobile-navigation__inner \{[\s\S]*min-height: 100dvh;/);
+  assert.match(css, /\.menu-button \{[\s\S]*width: 48px;[\s\S]*min-height: 48px;/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.mobile-navigation \{\s*animation: none;/);
+});
+
 test("reveals every Home chapter's text through the hero-style clipped rise", async () => {
   const css = await readSource("src/app/globals.css");
   const reveal = await readSource("src/components/RevealText.jsx");

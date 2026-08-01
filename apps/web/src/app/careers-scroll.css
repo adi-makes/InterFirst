@@ -1,0 +1,376 @@
+/* Scroll-led Careers application. This file intentionally follows globals.css. */
+
+.application-shell {
+  position: relative;
+  isolation: isolate;
+  height: auto;
+  min-height: 100svh;
+  overflow: visible;
+  background: transparent;
+  animation: none;
+}
+
+.careers-sequence {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  background-color: #f4f3ef;
+  background-image: var(--careers-sequence-fallback);
+  background-position: center;
+  background-size: cover;
+  pointer-events: none;
+}
+
+.careers-sequence canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  display: block;
+}
+
+.careers-sequence__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgb(250 250 248 / 0.2), transparent 48%, rgb(250 250 248 / 0.14)),
+    linear-gradient(180deg, rgb(250 250 248 / 0.1), transparent 42%, rgb(250 250 248 / 0.2));
+}
+
+.application-header {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  border-bottom: 1px solid rgb(17 17 17 / 0.08);
+  background: rgb(250 250 248 / 0.88);
+  backdrop-filter: blur(18px) saturate(120%);
+}
+
+.application-header__inner {
+  display: flex;
+  width: min(calc(100% - 64px), var(--wide));
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  margin-inline: auto;
+}
+
+.application-header__inner > div {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.application-header__inner span {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.application-header__inner button {
+  min-height: 44px;
+  padding: 8px 0 8px 16px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+}
+
+.application-header progress {
+  display: block;
+  width: 100%;
+  height: 2px;
+  border: 0;
+  appearance: none;
+}
+
+.application-header progress::-webkit-progress-bar { background: rgb(17 17 17 / 0.1); }
+.application-header progress::-webkit-progress-value { background: var(--accent); transition: width 90ms linear; }
+.application-header progress::-moz-progress-bar { background: var(--accent); }
+
+.application-scroll-flow {
+  position: relative;
+  z-index: 1;
+}
+
+.application-scroll-flow form {
+  width: 100%;
+  overscroll-behavior-y: auto;
+}
+
+.application-checkpoint {
+  position: relative;
+  display: grid;
+  min-height: 0;
+  place-items: center;
+  padding: clamp(34px, 5vw, 64px) 24px;
+  scroll-margin-top: 74px;
+}
+
+.application-checkpoint:first-child {
+  min-height: calc(100svh - 74px);
+}
+
+.application-checkpoint__card {
+  width: min(100%, 860px);
+  overflow: hidden;
+  overscroll-behavior-y: auto;
+  touch-action: pan-y;
+  border: 1px solid rgb(17 17 17 / 0.13);
+  border-radius: 18px;
+  background: rgb(250 250 248 / 0.9);
+  box-shadow: 0 28px 80px rgb(17 17 17 / 0.1);
+  backdrop-filter: blur(18px) saturate(110%);
+}
+
+.application-main__meta {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 20px;
+  border-bottom: 1px solid rgb(17 17 17 / 0.1);
+  background: rgb(255 255 255 / 0.38);
+  color: var(--text-secondary);
+  font-family: "Geist Mono Variable", monospace;
+  font-size: 11px;
+  font-weight: 560;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.application-panel {
+  display: grid;
+  min-height: 430px;
+  align-content: center;
+  padding: clamp(34px, 5vw, 58px);
+}
+
+.application-question--role {
+  width: 100%;
+}
+
+.application-panel__heading {
+  max-width: 700px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.application-panel__kicker {
+  margin: 0;
+  font-family: "Geist Mono Variable", monospace;
+  font-size: 12px;
+  font-weight: 560;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.application-panel__heading h1 {
+  margin: 20px 0 0;
+  font-size: clamp(42px, 5vw, 68px);
+  font-weight: 520;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+}
+
+.application-panel__heading > p:last-child {
+  margin: 22px 0 0;
+  color: var(--text-secondary);
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.application-role-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 44px;
+}
+
+.application-role-option {
+  display: grid;
+  min-height: 154px;
+  grid-template-columns: 1fr auto;
+  align-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.7);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 180ms ease-out, background-color 180ms ease-out, transform 180ms ease-out;
+}
+
+.application-role-option > span {
+  grid-column: 1 / -1;
+  color: var(--text-secondary);
+  font-family: "Geist Mono Variable", monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.application-role-option strong {
+  font-size: 19px;
+  font-weight: 560;
+  letter-spacing: -0.025em;
+}
+
+.application-role-option[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: rgb(255 255 255 / 0.96);
+  color: var(--accent);
+}
+
+.application-role-option:focus-visible,
+.application-scroll-prompt:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.application-fields {
+  display: grid;
+  width: min(100%, 620px);
+  gap: 24px;
+  margin: 46px auto 0;
+}
+
+.application-fields--single { width: min(100%, 560px); }
+.application-field { display: grid; gap: 9px; }
+.application-field label,
+.application-choice legend { padding: 0; font-size: 14px; font-weight: 560; }
+.application-field label { display: flex; justify-content: space-between; gap: 16px; }
+.application-field label span { color: var(--text-secondary); font-size: 12px; font-weight: 450; }
+
+.application-field input,
+.application-field textarea {
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.92);
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.application-field input { min-height: 56px; padding: 0 16px; }
+.application-field textarea { min-height: 128px; padding: 14px 16px; resize: vertical; }
+.application-field--answer { width: min(100%, 680px); margin: 46px auto 0; }
+.application-field--answer textarea { min-height: 220px; }
+.application-field input:focus-visible,
+.application-field textarea:focus-visible { border-color: var(--text); outline: 2px solid var(--focus); outline-offset: 2px; }
+.application-field input[aria-invalid="true"],
+.application-field textarea[aria-invalid="true"] { border-color: #a33636; }
+.application-field__help,
+.application-field__error { margin: 0; font-size: 13px; line-height: 1.45; }
+.application-field__help { color: var(--text-secondary); }
+.application-field__error { color: #8f2929; }
+
+.application-choice { min-width: 0; margin: 0; padding: 0; border: 0; }
+.application-choice__options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.application-choice__options label { position: relative; cursor: pointer; }
+.application-choice__options input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.application-choice__options span { display: flex; min-height: 52px; align-items: center; justify-content: center; padding: 10px 14px; border: 1px solid var(--border-strong); border-radius: 10px; background: rgb(255 255 255 / 0.82); color: var(--text-secondary); font-size: 14px; text-align: center; }
+.application-choice__options input:checked + span { border-color: var(--accent); color: var(--accent); }
+.application-choice__options input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 3px; }
+.application-choice > .application-field__error { margin-top: 8px; }
+
+.application-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  border-top: 1px solid rgb(17 17 17 / 0.1);
+  background: rgb(255 255 255 / 0.46);
+}
+
+.application-actions--submit {
+  justify-content: flex-end;
+}
+
+.application-primary-action,
+.application-secondary-action,
+.application-text-action,
+.application-back-action {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: 9px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 560;
+}
+
+.application-primary-action { padding: 13px 18px; border: 1px solid var(--text); background: var(--text); color: var(--surface); }
+.application-primary-action:disabled { cursor: wait; opacity: 0.68; }
+.application-secondary-action { padding: 13px 18px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); }
+.application-text-action,
+.application-back-action { padding: 10px 0; border: 0; background: transparent; color: var(--text-secondary); }
+
+.application-privacy-note {
+  margin: 0;
+  padding: 14px 22px;
+  border-top: 1px solid rgb(17 17 17 / 0.08);
+  background: rgb(255 255 255 / 0.5);
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.application-review { display: grid; gap: 0; margin-top: 42px; border-top: 1px solid var(--border); }
+.application-review section { padding-block: 22px; border-bottom: 1px solid var(--border); }
+.application-review section > div:first-child { display: flex; justify-content: space-between; gap: 20px; }
+.application-review section > div:first-child p { margin: 0 0 18px; font-weight: 570; }
+.application-review button { min-height: 32px; padding: 0; border: 0; background: transparent; color: var(--accent); cursor: pointer; font-size: 13px; }
+.application-review dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 28px; margin: 0; }
+.application-review dt { color: var(--text-secondary); font-size: 12px; }
+.application-review dd { overflow-wrap: anywhere; margin: 5px 0 0; font-size: 15px; }
+.application-review section > p { overflow-wrap: anywhere; margin: 10px 0 0; color: var(--text-secondary); line-height: 1.55; }
+
+@media (hover: hover) and (pointer: fine) {
+  .application-role-option:hover { border-color: var(--text-secondary); background: rgb(255 255 255 / 0.94); transform: translateY(-2px); }
+  .application-choice__options label:hover span { border-color: var(--text-secondary); background: var(--surface); }
+}
+
+@media (max-width: 640px) {
+  .application-header__inner { width: calc(100% - 32px); min-height: 64px; }
+  .application-header__inner > div { gap: 12px; }
+  .application-header__inner > div:first-child span,
+  .application-header__inner > div:last-child span { display: none; }
+  .application-checkpoint { min-height: 0; padding: 22px 16px; scroll-margin-top: 66px; }
+  .application-checkpoint:first-child { min-height: calc(100svh - 66px); }
+  .application-checkpoint__card { border-radius: 14px; }
+  .application-panel { min-height: 0; padding: 34px 20px; }
+  .application-panel__heading { margin-inline: 0; text-align: left; }
+  .application-panel__heading h1 { font-size: clamp(38px, 11vw, 48px); }
+  .application-role-options { grid-template-columns: 1fr; gap: 10px; margin-top: 30px; }
+  .application-role-option { min-height: 78px; grid-template-columns: auto 1fr auto; gap: 14px; padding: 16px; }
+  .application-role-option > span { grid-column: auto; }
+  .application-fields,
+  .application-field--answer,
+  .application-review { margin-top: 34px; }
+  .application-choice__options { grid-template-columns: 1fr; }
+  .application-choice__options span { justify-content: flex-start; }
+  .application-actions { align-items: stretch; flex-direction: column-reverse; padding: 16px 20px max(16px, env(safe-area-inset-bottom)); }
+  .application-actions button { width: 100%; }
+  .application-privacy-note { padding-inline: 20px; }
+  .application-review dl { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .application-header progress::-webkit-progress-value,
+  .application-role-option { transition: none !important; }
+  .application-role-option:hover { transform: none; }
+}
+
+@media (forced-colors: active) {
+  .application-checkpoint__card { border: 1px solid CanvasText; background: Canvas; box-shadow: none; }
+  .careers-sequence { display: none; }
+}

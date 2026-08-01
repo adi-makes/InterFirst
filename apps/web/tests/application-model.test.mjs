@@ -4,8 +4,22 @@ import {
   createEmptyValues,
   DRAFT_LIFETIME_MS,
   isDraftCurrent,
+  roleConfigurations,
   validateStep,
 } from "../src/careers/applicationModel.js";
+
+test("uses the same application questions and evidence choices for every role", () => {
+  const configurations = Object.values(roleConfigurations);
+  const sharedQuestions = configurations.map((configuration) => ({
+    evidenceOptions: configuration.evidenceOptions,
+    workHeading: configuration.workHeading,
+    question: configuration.question,
+    confirmation: configuration.confirmation,
+  }));
+
+  assert.deepEqual(sharedQuestions[1], sharedQuestions[0]);
+  assert.deepEqual(sharedQuestions[2], sharedQuestions[0]);
+});
 
 test("validates required personal, work, and about fields", () => {
   const values = createEmptyValues();
