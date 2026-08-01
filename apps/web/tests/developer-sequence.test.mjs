@@ -13,7 +13,9 @@ test("addresses all 192 HQ PNG frames without the legacy JPEG set", () => {
   assert.equal(careersSequence.maxCanvasWidth, 3840);
   assert.equal(careersSequence.maxCanvasHeight, 2160);
   assert.equal(careersSequence.interpolateFrames, true);
-  assert.equal(careersSequence.preloadRadius, 8);
+  assert.equal(careersSequence.preloadRadius, 4);
+  assert.equal(careersSequence.maxCachedFrames, 20);
+  assert.equal(careersSequence.maxConcurrentLoads, 3);
   assert.ok(careersSequence.minimumPlaybackFps >= 24);
   assert.ok(careersSequence.smoothingTimeConstantMs > 0);
   assert.equal(getSequenceFramePath(0).endsWith("ezgif-frame-001.png"), true);
@@ -44,7 +46,7 @@ test("keeps applicant values outside the decorative animation engine", async () 
   assert.match(source, /prefers-reduced-motion: reduce/);
   assert.match(source, /window\.matchMedia\("\(max-width: 640px\)"\)/);
   assert.match(source, /dataset\.playbackMode = "mobile-static"/);
-  assert.match(source, /if \(isMobile\)[\s\S]*onLoadingChange\?\.\(false\)[\s\S]*return undefined/);
+  assert.doesNotMatch(source, /onLoadingChange/);
   assert.match(source, /ResizeObserver/);
   assert.match(source, /imageSmoothingQuality = "high"/);
   assert.match(source, /careersSequence\.maxCanvasWidth/);
@@ -54,6 +56,13 @@ test("keeps applicant values outside the decorative animation engine", async () 
   assert.match(source, /window\.requestAnimationFrame\(animateTowardTarget\)/);
   assert.match(source, /context\.globalAlpha = blend/);
   assert.match(source, /Math\.exp\(-elapsed \/ careersSequence\.smoothingTimeConstantMs\)/);
+  assert.match(source, /loadQueueRef/);
+  assert.match(source, /activeLoadsRef\.current < careersSequence\.maxConcurrentLoads/);
+  assert.match(source, /framesRef\.current\.size > careersSequence\.maxCachedFrames/);
+  assert.match(source, /releaseImage/);
+  assert.match(source, /loadFramePair\(framePosition, true\)/);
+  assert.match(source, /dataset\.ready = "true"/);
+  assert.doesNotMatch(source, /drawTokenRef/);
   assert.doesNotMatch(source, /setInterval|ambientFramesPerSecond|boostedFramesPerSecond|playSegment/);
 });
 
@@ -82,12 +91,19 @@ test("unlocks one freely scrollable question set for every role", async () => {
   assert.match(source, /nextProgress \+= segmentFraction/);
   assert.doesNotMatch(source, /value=\{step \+ 1\}/);
   assert.match(source, /const applicationWheelSpeed = 1\.65/);
-  assert.match(source, /application-mobile-statement/);
-  assert.match(source, /We build internet-first companies\./);
+  assert.match(source, /const mobileApplicationWheelSpeed = 2\.35/);
+  assert.match(source, /window\.matchMedia\("\(max-width: 640px\)"\)\.matches/);
+  assert.doesNotMatch(source, /application-mobile-statement/);
+  assert.doesNotMatch(source, /Preparing image|Saving|Saved on this device|saveStatus|isSequenceLoading/);
   assert.match(source, /const scrollElement = document\.scrollingElement \|\| document\.documentElement/);
-  assert.match(source, /scrollElement\.scrollTop \+= verticalDelta \* applicationWheelSpeed/);
+  assert.match(source, /scrollElement\.scrollTop \+= verticalDelta \* wheelSpeed/);
   assert.match(source, /event\.ctrlKey/);
   assert.doesNotMatch(source, /ScrollPrompt|CheckpointActions|continueFrom|application-track|application-slide|--slide-offset/);
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.application-checkpoint \{ min-height: calc\(100dvh - 66px\);/);
   assert.match(css, /\.application-checkpoint:first-child \{ min-height: calc\(100dvh - 66px\); \}/);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.careers-sequence \{[\s\S]*background-image: var\(--careers-sequence-fallback\);/);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.careers-sequence canvas \{\s*display: none;/);
+  assert.doesNotMatch(css, /application-mobile-statement/);
+  assert.match(css, /\.careers-sequence canvas \{[\s\S]*opacity: 0;/);
+  assert.match(css, /\.careers-sequence\[data-ready="true"\] canvas \{\s*opacity: 1;/);
 });

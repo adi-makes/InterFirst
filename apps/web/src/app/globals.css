@@ -2531,6 +2531,10 @@ button {
 }
 
 @media (max-width: 768px) {
+  .chapter-label svg {
+    display: none;
+  }
+
   .hero__grid {
     min-height: calc(100dvh - 64px);
     justify-content: space-around;

@@ -28,6 +28,11 @@
   height: 100%;
   inset: 0;
   display: block;
+  opacity: 0;
+}
+
+.careers-sequence[data-ready="true"] canvas {
+  opacity: 1;
 }
 
 .careers-sequence__veil {
@@ -37,8 +42,6 @@
     linear-gradient(90deg, rgb(250 250 248 / 0.2), transparent 48%, rgb(250 250 248 / 0.14)),
     linear-gradient(180deg, rgb(250 250 248 / 0.1), transparent 42%, rgb(250 250 248 / 0.2));
 }
-
-.application-mobile-statement { display: none; }
 
 .application-header {
   position: sticky;
@@ -343,26 +346,18 @@
 
 @media (max-width: 640px) {
   .careers-sequence {
-    background-image: none;
+    background-image: var(--careers-sequence-fallback);
   }
 
-  .careers-sequence canvas,
-  .careers-sequence__veil {
+  .careers-sequence canvas {
     display: none;
   }
 
-  .application-mobile-statement {
+  .careers-sequence__veil {
     display: block;
-    width: calc(100% - 32px);
-    max-width: 520px;
-    margin: 0 auto;
-    padding: 38px 4px 10px;
-    color: var(--text);
-    font-family: "Satoshi Variable", "Geist Variable", sans-serif;
-    font-size: clamp(32px, 9.5vw, 44px);
-    font-weight: 520;
-    letter-spacing: -0.055em;
-    line-height: 1;
+    background:
+      linear-gradient(180deg, rgb(250 250 248 / 0.46), rgb(250 250 248 / 0.3) 45%, rgb(250 250 248 / 0.5)),
+      linear-gradient(90deg, rgb(250 250 248 / 0.22), transparent 54%, rgb(250 250 248 / 0.18));
   }
 
   .application-header__inner { width: calc(100% - 32px); min-height: 64px; }

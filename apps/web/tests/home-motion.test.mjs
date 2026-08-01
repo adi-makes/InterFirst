@@ -137,4 +137,5 @@ test("gives every mobile Home chapter one composed viewport without clipping gro
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.hero__grid \{[\s\S]*min-height: calc\(100dvh - 64px\);[\s\S]*padding-block: 40px 32px;/);
   assert.match(css, /@media \(max-width: 768px\)[\s\S]*\.internet-first-meaning__inner \{[\s\S]*padding-block: 64px;/);
   assert.match(css, /@media \(max-width: 768px\)[\s\S]*\.what-were-building__card \{[\s\S]*min-height: 0;/);
+  assert.match(css, /@media \(max-width: 768px\)[\s\S]*\.chapter-label svg \{\s*display: none;/);
 });

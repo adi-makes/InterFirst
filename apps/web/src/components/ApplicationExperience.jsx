@@ -23,6 +23,7 @@ const stepLabels = [
 ];
 
 const applicationWheelSpeed = 1.65;
+const mobileApplicationWheelSpeed = 2.35;
 
 function routeApplicationWheel(event) {
   if (
@@ -41,7 +42,10 @@ function routeApplicationWheel(event) {
 
   event.preventDefault();
   const scrollElement = document.scrollingElement || document.documentElement;
-  scrollElement.scrollTop += verticalDelta * applicationWheelSpeed;
+  const wheelSpeed = window.matchMedia("(max-width: 640px)").matches
+    ? mobileApplicationWheelSpeed
+    : applicationWheelSpeed;
+  scrollElement.scrollTop += verticalDelta * wheelSpeed;
 }
 
 function Field({ error, help, id, label, optional = false, ...inputProps }) {
@@ -290,10 +294,8 @@ export function ApplicationExperience({ onExit }) {
   const [role, setRole] = useState(null);
   const [values, setValues] = useState(createEmptyValues);
   const [errors, setErrors] = useState({});
-  const [saveStatus, setSaveStatus] = useState("Saved on this device");
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const [submissionState, setSubmissionState] = useState("idle");
-  const [isSequenceLoading, setIsSequenceLoading] = useState(true);
   const [announcement, setAnnouncement] = useState("Choose a role to begin.");
   const configuration = role ? roleConfigurations[role] : null;
   const storageKey = useMemo(() => (role ? draftStorageKey(role) : null), [role]);
@@ -302,17 +304,14 @@ export function ApplicationExperience({ onExit }) {
   useEffect(() => {
     if (!role || !storageKey || step === 0) return undefined;
     window.clearTimeout(saveTimerRef.current);
-    const statusFrame = window.requestAnimationFrame(() => setSaveStatus("Saving…"));
     saveTimerRef.current = window.setTimeout(() => {
       try {
         localStorage.setItem(storageKey, JSON.stringify({ schemaVersion: DRAFT_SCHEMA_VERSION, role, step, updatedAt: new Date().toISOString(), values }));
-        setSaveStatus("Saved on this device");
       } catch {
-        setSaveStatus("Couldn't save on this device");
+        // Draft persistence is best-effort and intentionally silent in the application chrome.
       }
     }, 240);
     return () => {
-      window.cancelAnimationFrame(statusFrame);
       window.clearTimeout(saveTimerRef.current);
     };
   }, [role, step, storageKey, values]);
@@ -473,12 +472,11 @@ export function ApplicationExperience({ onExit }) {
 
   return (
     <div className="application-shell" ref={scrollContainerRef}>
-      <CareersSequenceCanvas enabled={Boolean(role)} onLoadingChange={setIsSequenceLoading} scrollContainerRef={scrollContainerRef} />
+      <CareersSequenceCanvas enabled={Boolean(role)} scrollContainerRef={scrollContainerRef} />
       <header className="application-header">
         <div className="application-header__inner">
           <div><Brand href="/" /><span>{configuration ? `Applying as ${configuration.label}` : "Choose a role"}</span></div>
           <div>
-            <span aria-live="polite">{isSequenceLoading ? "Preparing image…" : saveStatus}</span>
             <button onClick={() => setShowExitConfirmation(true)} type="button">Exit</button>
           </div>
         </div>
@@ -486,7 +484,6 @@ export function ApplicationExperience({ onExit }) {
       </header>
 
       <main className="application-scroll-flow">
-        <p className="application-mobile-statement">We build internet-first companies.</p>
         <p className="sr-only" aria-live="polite">{announcement}</p>
         <form
           data-scroll-owner="document"

@@ -7,26 +7,60 @@ import {
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-export function CareersSequenceCanvas({ enabled, onLoadingChange, scrollContainerRef }) {
+const releaseImage = (image) => {
+  if (image) image.src = "";
+};
+
+export function CareersSequenceCanvas({ enabled, scrollContainerRef }) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const contextRef = useRef(null);
   const framesRef = useRef(new Map());
   const promisesRef = useRef(new Map());
+  const loadQueueRef = useRef([]);
+  const activeLoadsRef = useRef(0);
+  const loadSessionRef = useRef(0);
   const failedRef = useRef(new Set());
   const targetFrameRef = useRef(0);
   const displayedFrameRef = useRef(0);
-  const renderedFrameRef = useRef(0);
   const animationRequestRef = useRef(0);
   const scrollRequestRef = useRef(0);
   const lastAnimationTimeRef = useRef(0);
-  const drawTokenRef = useRef(0);
   const reducedMotionRef = useRef(false);
   const enabledRef = useRef(enabled);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches,
   );
   const [fallbackPath] = useState(() => getSequenceFramePath(0));
+
+  const trimFrameCache = useCallback((centerPosition) => {
+    const protectedIndexes = new Set([
+      Math.floor(centerPosition),
+      Math.ceil(centerPosition),
+    ]);
+
+    while (framesRef.current.size > careersSequence.maxCachedFrames) {
+      let candidateIndex = null;
+      let candidateDistance = -1;
+
+      framesRef.current.forEach((_, index) => {
+        if (protectedIndexes.has(index)) return;
+        const distance = Math.abs(index - centerPosition);
+        if (distance > candidateDistance) {
+          candidateDistance = distance;
+          candidateIndex = index;
+        }
+      });
+
+      if (candidateIndex === null) candidateIndex = framesRef.current.keys().next().value;
+      releaseImage(framesRef.current.get(candidateIndex));
+      framesRef.current.delete(candidateIndex);
+    }
+
+    if (containerRef.current) {
+      containerRef.current.dataset.cachedFrames = String(framesRef.current.size);
+    }
+  }, []);
 
   const drawFramePosition = useCallback((framePosition) => {
     const canvas = canvasRef.current;
@@ -64,52 +98,97 @@ export function CareersSequenceCanvas({ enabled, onLoadingChange, scrollContaine
       context.globalAlpha = 1;
     }
 
-    renderedFrameRef.current = Math.round(framePosition);
     containerRef.current.dataset.frameIndex = String(Math.round(framePosition));
     containerRef.current.dataset.framePosition = framePosition.toFixed(3);
+    containerRef.current.dataset.ready = "true";
     return true;
   }, []);
 
-  const loadFrame = useCallback((requestedIndex) => {
+  const loadFrame = useCallback((requestedIndex, { priority = false } = {}) => {
     const index = clamp(Math.round(requestedIndex), 0, careersSequence.frameCount - 1);
     if (framesRef.current.has(index)) return Promise.resolve(framesRef.current.get(index));
     if (failedRef.current.has(index)) return Promise.resolve(null);
     if (promisesRef.current.has(index)) return promisesRef.current.get(index);
 
+    let task;
     const promise = new Promise((resolve) => {
-      const image = new Image();
-      image.decoding = "async";
-      image.onload = async () => {
-        try {
-          await image.decode();
-        } catch {
-          // The loaded PNG remains drawable when decode() is unavailable.
+      task = { index, priority, resolve, session: loadSessionRef.current, promise: null };
+      if (priority) loadQueueRef.current.unshift(task);
+      else loadQueueRef.current.push(task);
+
+      const startQueuedLoads = () => {
+        while (
+          activeLoadsRef.current < careersSequence.maxConcurrentLoads
+          && loadQueueRef.current.length
+        ) {
+          const nextTask = loadQueueRef.current.shift();
+          if (nextTask.session !== loadSessionRef.current) {
+            if (promisesRef.current.get(nextTask.index) === nextTask.promise) {
+              promisesRef.current.delete(nextTask.index);
+            }
+            nextTask.resolve(null);
+            continue;
+          }
+
+          activeLoadsRef.current += 1;
+          const image = new Image();
+          let settled = false;
+          const finish = (loadedImage) => {
+            if (settled) return;
+            settled = true;
+            activeLoadsRef.current -= 1;
+
+            const isCurrentSession = nextTask.session === loadSessionRef.current;
+            if (isCurrentSession && loadedImage?.naturalWidth) {
+              framesRef.current.set(nextTask.index, loadedImage);
+              trimFrameCache(targetFrameRef.current);
+            } else {
+              releaseImage(loadedImage);
+            }
+
+            if (promisesRef.current.get(nextTask.index) === nextTask.promise) {
+              promisesRef.current.delete(nextTask.index);
+            }
+            nextTask.resolve(isCurrentSession ? loadedImage : null);
+            if (containerRef.current) {
+              containerRef.current.dataset.activeLoads = String(activeLoadsRef.current);
+              containerRef.current.dataset.queuedLoads = String(loadQueueRef.current.length);
+            }
+            startQueuedLoads();
+          };
+
+          image.decoding = "async";
+          image.onload = () => {
+            image.decode().catch(() => undefined).then(() => finish(image));
+          };
+          image.onerror = () => {
+            failedRef.current.add(nextTask.index);
+            finish(null);
+          };
+          image.src = getSequenceFramePath(nextTask.index);
         }
-        framesRef.current.set(index, image);
-        while (framesRef.current.size > 64) {
-          const oldestIndex = framesRef.current.keys().next().value;
-          if (Math.abs(oldestIndex - renderedFrameRef.current) <= 1) break;
-          framesRef.current.delete(oldestIndex);
+
+        if (containerRef.current) {
+          containerRef.current.dataset.activeLoads = String(activeLoadsRef.current);
+          containerRef.current.dataset.queuedLoads = String(loadQueueRef.current.length);
         }
-        promisesRef.current.delete(index);
-        resolve(image);
       };
-      image.onerror = () => {
-        failedRef.current.add(index);
-        promisesRef.current.delete(index);
-        resolve(null);
-      };
-      image.src = getSequenceFramePath(index);
+
+      startQueuedLoads();
     });
 
+    task.promise = promise;
     promisesRef.current.set(index, promise);
     return promise;
-  }, []);
+  }, [trimFrameCache]);
 
-  const loadFramePair = useCallback((framePosition) => {
+  const loadFramePair = useCallback((framePosition, priority = false) => {
     const lowerIndex = Math.floor(framePosition);
     const upperIndex = Math.ceil(framePosition);
-    return Promise.all([loadFrame(lowerIndex), loadFrame(upperIndex)]);
+    return Promise.all([
+      loadFrame(lowerIndex, { priority }),
+      loadFrame(upperIndex, { priority }),
+    ]);
   }, [loadFrame]);
 
   const animateTowardTarget = useCallback((timestamp) => {
@@ -128,9 +207,8 @@ export function CareersSequenceCanvas({ enabled, onLoadingChange, scrollContaine
       : current + distance * blendAmount;
 
     displayedFrameRef.current = nextPosition;
-    const drawToken = ++drawTokenRef.current;
-    loadFramePair(nextPosition).then(() => {
-      if (drawTokenRef.current === drawToken) drawFramePosition(nextPosition);
+    loadFramePair(nextPosition, true).then(() => {
+      drawFramePosition(displayedFrameRef.current);
     });
 
     if (nextPosition !== target) {
@@ -146,10 +224,18 @@ export function CareersSequenceCanvas({ enabled, onLoadingChange, scrollContaine
     const targetIndex = Math.round(framePosition);
     targetFrameRef.current = framePosition;
 
-    const targetReady = framesRef.current.has(Math.floor(framePosition))
-      && framesRef.current.has(Math.ceil(framePosition));
-    onLoadingChange?.(!targetReady);
-    loadFramePair(framePosition).then(() => onLoadingChange?.(false));
+    loadQueueRef.current = loadQueueRef.current.filter((task) => {
+      const keep = Math.abs(task.index - targetIndex) <= careersSequence.preloadRadius + 1;
+      if (!keep) {
+        if (promisesRef.current.get(task.index) === task.promise) {
+          promisesRef.current.delete(task.index);
+        }
+        task.resolve(null);
+      }
+      return keep;
+    });
+
+    loadFramePair(framePosition, true);
 
     for (let offset = 1; offset <= careersSequence.preloadRadius; offset += 1) {
       loadFrame(targetIndex + offset);
@@ -159,7 +245,7 @@ export function CareersSequenceCanvas({ enabled, onLoadingChange, scrollContaine
     if (!animationRequestRef.current) {
       animationRequestRef.current = window.requestAnimationFrame(animateTowardTarget);
     }
-  }, [animateTowardTarget, loadFrame, loadFramePair, onLoadingChange]);
+  }, [animateTowardTarget, loadFrame, loadFramePair]);
 
   const updateFromScroll = useCallback(() => {
     const container = scrollContainerRef.current;
@@ -209,12 +295,9 @@ export function CareersSequenceCanvas({ enabled, onLoadingChange, scrollContaine
 
   useEffect(() => {
     enabledRef.current = enabled;
-    if (isMobile) {
-      onLoadingChange?.(false);
-      return;
-    }
+    if (isMobile) return;
     updateFromScroll();
-  }, [enabled, isMobile, onLoadingChange, updateFromScroll]);
+  }, [enabled, isMobile, updateFromScroll]);
 
   useEffect(() => {
     const mobileQuery = window.matchMedia("(max-width: 640px)");
@@ -231,7 +314,6 @@ export function CareersSequenceCanvas({ enabled, onLoadingChange, scrollContaine
 
     if (isMobile) {
       container.dataset.playbackMode = "mobile-static";
-      onLoadingChange?.(false);
       return undefined;
     }
 
@@ -271,7 +353,7 @@ export function CareersSequenceCanvas({ enabled, onLoadingChange, scrollContaine
     resizeObserver.observe(container);
     window.addEventListener("scroll", onScroll, { passive: true });
     motionQuery.addEventListener?.("change", onMotionPreferenceChange);
-    loadFrame(0).then(() => {
+    loadFrame(0, { priority: true }).then(() => {
       resize();
       requestFrame(0);
     });
@@ -279,16 +361,19 @@ export function CareersSequenceCanvas({ enabled, onLoadingChange, scrollContaine
     const decodedFrames = framesRef.current;
     const pendingFrames = promisesRef.current;
     return () => {
+      loadSessionRef.current += 1;
       resizeObserver.disconnect();
       window.removeEventListener("scroll", onScroll);
       motionQuery.removeEventListener?.("change", onMotionPreferenceChange);
       window.cancelAnimationFrame(scrollRequestRef.current);
       window.cancelAnimationFrame(animationRequestRef.current);
+      loadQueueRef.current.splice(0).forEach((task) => task.resolve(null));
+      decodedFrames.forEach(releaseImage);
       decodedFrames.clear();
       pendingFrames.clear();
       contextRef.current = null;
     };
-  }, [isMobile, loadFrame, onLoadingChange, requestFrame, updateFromScroll]);
+  }, [isMobile, loadFrame, requestFrame, updateFromScroll]);
 
   return (
     <div
