@@ -24,6 +24,7 @@ const stepLabels = [
 
 const applicationWheelSpeed = 1.65;
 const mobileApplicationWheelSpeed = 2.35;
+const mobileCardTouchScrollSpeed = 1.35;
 
 function routeApplicationWheel(event) {
   if (
@@ -287,6 +288,7 @@ export function ApplicationExperience({ onExit }) {
   const formRef = useRef(null);
   const checkpointRefs = useRef([]);
   const stepControlRefs = useRef([]);
+  const roleRef = useRef(null);
   const saveTimerRef = useRef(null);
   const submitTimerRef = useRef(null);
   const [step, setStep] = useState(0);
@@ -297,6 +299,7 @@ export function ApplicationExperience({ onExit }) {
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const [submissionState, setSubmissionState] = useState("idle");
   const [announcement, setAnnouncement] = useState("Choose a role to begin.");
+  roleRef.current = role;
   const configuration = role ? roleConfigurations[role] : null;
   const storageKey = useMemo(() => (role ? draftStorageKey(role) : null), [role]);
   const stepRefCallbacks = useMemo(() => Array.from({ length: 8 }, (_, index) => (node) => { stepControlRefs.current[index] = node; }), []);
@@ -385,8 +388,70 @@ export function ApplicationExperience({ onExit }) {
   useEffect(() => {
     const form = formRef.current;
     if (!form) return undefined;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let lastTouchY = 0;
+    let directionLocked = false;
+    let verticalGesture = false;
+    let cardGesture = false;
+
+    const onTouchStart = (event) => {
+      cardGesture = false;
+      if (
+        !roleRef.current
+        || !window.matchMedia("(max-width: 640px)").matches
+        || event.touches.length !== 1
+        || !(event.target instanceof Element)
+        || !event.target.closest(".application-checkpoint__card")
+      ) return;
+
+      const touch = event.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      lastTouchY = touch.clientY;
+      directionLocked = false;
+      verticalGesture = false;
+      cardGesture = true;
+    };
+
+    const onTouchMove = (event) => {
+      if (!cardGesture || event.touches.length !== 1) return;
+      const touch = event.touches[0];
+      const totalX = touch.clientX - touchStartX;
+      const totalY = touch.clientY - touchStartY;
+
+      if (!directionLocked) {
+        if (Math.hypot(totalX, totalY) < 12) return;
+        directionLocked = true;
+        verticalGesture = Math.abs(totalY) > Math.abs(totalX);
+      }
+      if (!verticalGesture || !event.cancelable) return;
+
+      event.preventDefault();
+      const scrollElement = document.scrollingElement || document.documentElement;
+      scrollElement.scrollTop += (lastTouchY - touch.clientY) * mobileCardTouchScrollSpeed;
+      lastTouchY = touch.clientY;
+    };
+
+    const finishTouch = () => {
+      cardGesture = false;
+      directionLocked = false;
+      verticalGesture = false;
+    };
+
     form.addEventListener("wheel", routeApplicationWheel, { capture: true, passive: false });
-    return () => form.removeEventListener("wheel", routeApplicationWheel, { capture: true });
+    form.addEventListener("touchstart", onTouchStart, { capture: true, passive: true });
+    form.addEventListener("touchmove", onTouchMove, { capture: true, passive: false });
+    form.addEventListener("touchend", finishTouch, { capture: true, passive: true });
+    form.addEventListener("touchcancel", finishTouch, { capture: true, passive: true });
+    return () => {
+      form.removeEventListener("wheel", routeApplicationWheel, { capture: true });
+      form.removeEventListener("touchstart", onTouchStart, { capture: true });
+      form.removeEventListener("touchmove", onTouchMove, { capture: true });
+      form.removeEventListener("touchend", finishTouch, { capture: true });
+      form.removeEventListener("touchcancel", finishTouch, { capture: true });
+    };
   }, [showExitConfirmation, submissionState]);
 
   const onChange = (field, value) => {

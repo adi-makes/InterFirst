@@ -359,12 +359,15 @@
   .application-field,
   .application-field input,
   .application-field textarea,
+  .application-role-option,
   .application-choice,
   .application-choice__options,
   .application-choice__options label,
   .application-choice__options span,
   .application-review,
-  .application-review section {
+  .application-review section,
+  .application-review button,
+  .application-actions button {
     touch-action: auto;
   }
 
