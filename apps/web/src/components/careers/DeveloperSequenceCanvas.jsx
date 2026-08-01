@@ -28,15 +28,22 @@ export function CareersSequenceCanvas({ enabled, scrollContainerRef }) {
   const lastAnimationTimeRef = useRef(0);
   const reducedMotionRef = useRef(false);
   const enabledRef = useRef(enabled);
+  const loadFrameRef = useRef(null);
   const [isMobile, setIsMobile] = useState(() =>
     typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches,
   );
   const [fallbackPath] = useState(() => getSequenceFramePath(0));
 
   const trimFrameCache = useCallback((centerPosition) => {
+    const displayedPosition = displayedFrameRef.current;
+    const targetPosition = targetFrameRef.current;
     const protectedIndexes = new Set([
       Math.floor(centerPosition),
       Math.ceil(centerPosition),
+      Math.floor(displayedPosition),
+      Math.ceil(displayedPosition),
+      Math.floor(targetPosition),
+      Math.ceil(targetPosition),
     ]);
 
     while (framesRef.current.size > careersSequence.maxCachedFrames) {
@@ -45,7 +52,10 @@ export function CareersSequenceCanvas({ enabled, scrollContainerRef }) {
 
       framesRef.current.forEach((_, index) => {
         if (protectedIndexes.has(index)) return;
-        const distance = Math.abs(index - centerPosition);
+        const distance = Math.min(
+          Math.abs(index - displayedPosition),
+          Math.abs(index - targetPosition),
+        );
         if (distance > candidateDistance) {
           candidateDistance = distance;
           candidateIndex = index;
@@ -69,7 +79,11 @@ export function CareersSequenceCanvas({ enabled, scrollContainerRef }) {
     const upperIndex = clamp(Math.ceil(framePosition), 0, careersSequence.frameCount - 1);
     const lowerImage = framesRef.current.get(lowerIndex);
     const upperImage = framesRef.current.get(upperIndex);
+    const blend = framePosition - lowerIndex;
     if (!canvas || !context || !lowerImage?.naturalWidth || !lowerImage?.naturalHeight) {
+      return false;
+    }
+    if (blend > 0 && (!upperImage?.naturalWidth || !upperImage?.naturalHeight)) {
       return false;
     }
 
@@ -88,10 +102,8 @@ export function CareersSequenceCanvas({ enabled, scrollContainerRef }) {
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
     context.globalAlpha = 1;
-    context.clearRect(0, 0, canvas.width, canvas.height);
     drawCover(lowerImage);
 
-    const blend = framePosition - lowerIndex;
     if (blend > 0 && upperImage?.naturalWidth && upperImage?.naturalHeight) {
       context.globalAlpha = blend;
       drawCover(upperImage);
@@ -108,7 +120,16 @@ export function CareersSequenceCanvas({ enabled, scrollContainerRef }) {
     const index = clamp(Math.round(requestedIndex), 0, careersSequence.frameCount - 1);
     if (framesRef.current.has(index)) return Promise.resolve(framesRef.current.get(index));
     if (failedRef.current.has(index)) return Promise.resolve(null);
-    if (promisesRef.current.has(index)) return promisesRef.current.get(index);
+    if (promisesRef.current.has(index)) {
+      if (priority) {
+        const queuedIndex = loadQueueRef.current.findIndex((task) => task.index === index);
+        if (queuedIndex > 0) {
+          const [queuedTask] = loadQueueRef.current.splice(queuedIndex, 1);
+          loadQueueRef.current.unshift(queuedTask);
+        }
+      }
+      return promisesRef.current.get(index);
+    }
 
     let task;
     const promise = new Promise((resolve) => {
@@ -181,6 +202,7 @@ export function CareersSequenceCanvas({ enabled, scrollContainerRef }) {
     promisesRef.current.set(index, promise);
     return promise;
   }, [trimFrameCache]);
+  loadFrameRef.current = loadFrame;
 
   const loadFramePair = useCallback((framePosition, priority = false) => {
     const lowerIndex = Math.floor(framePosition);
@@ -195,37 +217,53 @@ export function CareersSequenceCanvas({ enabled, scrollContainerRef }) {
     const target = targetFrameRef.current;
     const current = displayedFrameRef.current;
     const elapsed = lastAnimationTimeRef.current
-      ? Math.min(timestamp - lastAnimationTimeRef.current, 64)
+      ? Math.min(timestamp - lastAnimationTimeRef.current, careersSequence.maximumAnimationDeltaMs)
       : 1000 / careersSequence.minimumPlaybackFps;
     lastAnimationTimeRef.current = timestamp;
 
     const distance = target - current;
     const shouldSettleImmediately = reducedMotionRef.current || !enabledRef.current;
     const blendAmount = 1 - Math.exp(-elapsed / careersSequence.smoothingTimeConstantMs);
+    const smoothedStep = distance * blendAmount;
+    const maximumStep = careersSequence.maxFrameAdvancePerSecond * (elapsed / 1000);
+    const boundedStep = clamp(smoothedStep, -maximumStep, maximumStep);
     const nextPosition = shouldSettleImmediately || Math.abs(distance) <= careersSequence.settleThreshold
       ? target
-      : current + distance * blendAmount;
+      : current + boundedStep;
 
-    displayedFrameRef.current = nextPosition;
-    loadFramePair(nextPosition, true).then(() => {
-      drawFramePosition(displayedFrameRef.current);
-    });
+    const didDraw = drawFramePosition(nextPosition);
+    if (didDraw) displayedFrameRef.current = nextPosition;
+    else loadFramePair(nextPosition, true);
 
-    if (nextPosition !== target) {
+    const direction = Math.sign(target - displayedFrameRef.current);
+    const displayedIndex = Math.round(displayedFrameRef.current);
+    for (let offset = 1; offset <= careersSequence.motionPreloadRadius; offset += 1) {
+      loadFrame(displayedIndex + direction * offset);
+    }
+
+    if (!didDraw || nextPosition !== target) {
       animationRequestRef.current = window.requestAnimationFrame(animateTowardTarget);
     } else {
       animationRequestRef.current = 0;
       lastAnimationTimeRef.current = 0;
     }
-  }, [drawFramePosition, loadFramePair]);
+  }, [drawFramePosition, loadFrame, loadFramePair]);
 
   const requestFrame = useCallback((requestedIndex) => {
     const framePosition = clamp(requestedIndex, 0, careersSequence.frameCount - 1);
     const targetIndex = Math.round(framePosition);
+    const displayedIndex = Math.round(displayedFrameRef.current);
     targetFrameRef.current = framePosition;
 
     loadQueueRef.current = loadQueueRef.current.filter((task) => {
-      const keep = Math.abs(task.index - targetIndex) <= careersSequence.preloadRadius + 1;
+      const keep = (
+        Math.abs(task.index - targetIndex) <= careersSequence.preloadRadius + 1
+        || Math.abs(task.index - displayedIndex) <= careersSequence.motionPreloadRadius + 1
+        || (
+          framesRef.current.size < careersSequence.initialPreloadFrames
+          && task.index < careersSequence.initialPreloadFrames
+        )
+      );
       if (!keep) {
         if (promisesRef.current.get(task.index) === task.promise) {
           promisesRef.current.delete(task.index);
@@ -296,6 +334,11 @@ export function CareersSequenceCanvas({ enabled, scrollContainerRef }) {
   useEffect(() => {
     enabledRef.current = enabled;
     if (isMobile) return;
+    if (enabled) {
+      for (let index = 0; index < careersSequence.initialPreloadFrames; index += 1) {
+        loadFrameRef.current(index);
+      }
+    }
     updateFromScroll();
   }, [enabled, isMobile, updateFromScroll]);
 
