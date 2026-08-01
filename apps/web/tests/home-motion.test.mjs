@@ -42,7 +42,10 @@ test("keeps the navbar loop quiet and resolves every entrance under reduced moti
   assert.match(css, /brand-module-loop 6s/);
   assert.match(css, /brand-loader__flight/);
   assert.match(css, /transition: transform 760ms/);
-  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.brand-loader__flight \{[\s\S]*top: 50%;[\s\S]*left: 50%;[\s\S]*translate\(-50%, -50%\)/);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*--brand-loader-target-top: calc\(\(64px - 44px\) \/ 2\)/);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.brand-loader__flight \{[\s\S]*top: var\(--brand-loader-target-top\);[\s\S]*left: var\(--brand-loader-gutter\);[\s\S]*50dvh - var\(--brand-loader-target-top\) - 50%/);
+  assert.match(css, /\.brand-loader--moving \.brand-loader__flight,[\s\S]*transform: translate\(0, 0\) scale\(1\)/);
+  assert.doesNotMatch(css, /calc\(-50vh \+ 10px\)/);
   assert.match(css, /hero--intro-ready \.hero__word/);
   assert.match(css, /\.brand-loader \{\s*display: none !important;/);
   assert.match(css, /\.brand--assembly \.brand__module,[\s\S]*animation: none !important;/);

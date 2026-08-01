@@ -2861,6 +2861,10 @@ button {
 }
 
 @media (max-width: 640px) {
+  .brand-loader {
+    --brand-loader-target-top: calc((64px - 44px) / 2);
+  }
+
   .site-header,
   .site-header--scrolled {
     height: 64px;
@@ -2885,19 +2889,19 @@ button {
   }
 
   .brand-loader__flight {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(1.32);
+    top: var(--brand-loader-target-top);
+    left: var(--brand-loader-gutter);
+    transform: translate(
+        calc(50vw - var(--brand-loader-gutter) - 50%),
+        calc(50dvh - var(--brand-loader-target-top) - 50%)
+      )
+      scale(1.32);
     transform-origin: center;
   }
 
   .brand-loader--moving .brand-loader__flight,
   .brand-loader--revealing .brand-loader__flight {
-    transform: translate(
-        calc(-50vw + var(--brand-loader-gutter)),
-        calc(-50vh + 10px)
-      )
-      scale(1);
+    transform: translate(0, 0) scale(1);
   }
 
   .brand__name {

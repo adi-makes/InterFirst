@@ -75,3 +75,10 @@ test("keeps client-only behavior behind explicit route boundaries", async () => 
   assert.match(homePage, /min-h-screen bg-surface/);
   assert.match(careersPage, /className="min-h-screen"/);
 });
+
+test("tolerates browser-extension attributes on the root body only", async () => {
+  const layout = await readFile(new URL("src/app/layout.jsx", appRoot), "utf8");
+
+  assert.match(layout, /<body suppressHydrationWarning>\{children\}<\/body>/);
+  assert.doesNotMatch(layout, /<html[^>]*suppressHydrationWarning/);
+});
