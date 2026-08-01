@@ -38,6 +38,8 @@
     linear-gradient(180deg, rgb(250 250 248 / 0.1), transparent 42%, rgb(250 250 248 / 0.2));
 }
 
+.application-mobile-statement { display: none; }
+
 .application-header {
   position: sticky;
   z-index: 20;
@@ -340,12 +342,35 @@
 }
 
 @media (max-width: 640px) {
+  .careers-sequence {
+    background-image: none;
+  }
+
+  .careers-sequence canvas,
+  .careers-sequence__veil {
+    display: none;
+  }
+
+  .application-mobile-statement {
+    display: block;
+    width: calc(100% - 32px);
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 38px 4px 10px;
+    color: var(--text);
+    font-family: "Satoshi Variable", "Geist Variable", sans-serif;
+    font-size: clamp(32px, 9.5vw, 44px);
+    font-weight: 520;
+    letter-spacing: -0.055em;
+    line-height: 1;
+  }
+
   .application-header__inner { width: calc(100% - 32px); min-height: 64px; }
   .application-header__inner > div { gap: 12px; }
   .application-header__inner > div:first-child span,
   .application-header__inner > div:last-child span { display: none; }
-  .application-checkpoint { min-height: 0; padding: 22px 16px; scroll-margin-top: 66px; }
-  .application-checkpoint:first-child { min-height: calc(100svh - 66px); }
+  .application-checkpoint { min-height: calc(100dvh - 66px); padding: 22px 16px; scroll-margin-top: 66px; }
+  .application-checkpoint:first-child { min-height: calc(100dvh - 66px); }
   .application-checkpoint__card { border-radius: 14px; }
   .application-panel { min-height: 0; padding: 34px 20px; }
   .application-panel__heading { margin-inline: 0; text-align: left; }

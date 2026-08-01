@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { List, X } from "@phosphor-icons/react";
 import Link from "next/link";
 import { ActionLink } from "./ActionLink.jsx";
 import { Brand } from "./Brand.jsx";
@@ -116,33 +115,38 @@ export function SiteHeader({ isReady = true }) {
           ref={menuButtonRef}
           type="button"
         >
-          {menuOpen ? (
-            <X aria-hidden="true" size={24} weight="regular" />
-          ) : (
-            <List aria-hidden="true" size={24} weight="regular" />
-          )}
+          <span aria-hidden="true" className="menu-button__icon">
+            <span />
+            <span />
+          </span>
         </button>
       </div>
 
-      {menuOpen ? (
-        <nav className="mobile-navigation" id="mobile-navigation" aria-label="Mobile" ref={mobileNavigationRef}>
-          <div className="mobile-navigation__inner">
-            {navigation.map(([label, href], index) => (
-              <Link
-                href={href}
-                key={href}
-                onClick={closeMenu}
-                ref={index === 0 ? firstMobileLinkRef : undefined}
-              >
-                {label}
-              </Link>
-            ))}
-            <ActionLink href="/careers" onClick={closeMenu} showArrow>
-              Join Us
-            </ActionLink>
-          </div>
-        </nav>
-      ) : null}
+      <nav
+        aria-hidden={!menuOpen}
+        aria-label="Mobile"
+        className="mobile-navigation"
+        data-open={menuOpen}
+        id="mobile-navigation"
+        inert={!menuOpen}
+        ref={mobileNavigationRef}
+      >
+        <div className="mobile-navigation__inner">
+          {navigation.map(([label, href], index) => (
+            <Link
+              href={href}
+              key={href}
+              onClick={closeMenu}
+              ref={index === 0 ? firstMobileLinkRef : undefined}
+            >
+              {label}
+            </Link>
+          ))}
+          <ActionLink href="/careers" onClick={closeMenu} showArrow>
+            Join Us
+          </ActionLink>
+        </div>
+      </nav>
     </header>
   );
 }

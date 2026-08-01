@@ -39,10 +39,12 @@ test("keeps applicant values outside the decorative animation engine", async () 
     new URL("../src/components/careers/DeveloperSequenceCanvas.jsx", import.meta.url),
     "utf8",
   );
-
   assert.match(source, /aria-hidden="true"/);
   assert.doesNotMatch(source, /values\.|name|email|evidenceUrl|answer/);
   assert.match(source, /prefers-reduced-motion: reduce/);
+  assert.match(source, /window\.matchMedia\("\(max-width: 640px\)"\)/);
+  assert.match(source, /dataset\.playbackMode = "mobile-static"/);
+  assert.match(source, /if \(isMobile\)[\s\S]*onLoadingChange\?\.\(false\)[\s\S]*return undefined/);
   assert.match(source, /ResizeObserver/);
   assert.match(source, /imageSmoothingQuality = "high"/);
   assert.match(source, /careersSequence\.maxCanvasWidth/);
@@ -58,6 +60,10 @@ test("keeps applicant values outside the decorative animation engine", async () 
 test("unlocks one freely scrollable question set for every role", async () => {
   const source = await readFile(
     new URL("../src/components/ApplicationExperience.jsx", import.meta.url),
+    "utf8",
+  );
+  const css = await readFile(
+    new URL("../src/app/careers-scroll.css", import.meta.url),
     "utf8",
   );
   const validationIndex = source.indexOf("const validationSteps = [1, 2, 3, 4, 6]");
@@ -76,8 +82,12 @@ test("unlocks one freely scrollable question set for every role", async () => {
   assert.match(source, /nextProgress \+= segmentFraction/);
   assert.doesNotMatch(source, /value=\{step \+ 1\}/);
   assert.match(source, /const applicationWheelSpeed = 1\.65/);
+  assert.match(source, /application-mobile-statement/);
+  assert.match(source, /We build internet-first companies\./);
   assert.match(source, /const scrollElement = document\.scrollingElement \|\| document\.documentElement/);
   assert.match(source, /scrollElement\.scrollTop \+= verticalDelta \* applicationWheelSpeed/);
   assert.match(source, /event\.ctrlKey/);
   assert.doesNotMatch(source, /ScrollPrompt|CheckpointActions|continueFrom|application-track|application-slide|--slide-offset/);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.application-checkpoint \{ min-height: calc\(100dvh - 66px\);/);
+  assert.match(css, /\.application-checkpoint:first-child \{ min-height: calc\(100dvh - 66px\); \}/);
 });

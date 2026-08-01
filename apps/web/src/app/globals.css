@@ -368,6 +368,38 @@ button {
   cursor: pointer;
 }
 
+.menu-button__icon {
+  position: relative;
+  display: block;
+  width: 24px;
+  height: 18px;
+}
+
+.menu-button__icon > span {
+  position: absolute;
+  right: 2px;
+  left: 2px;
+  height: 1.5px;
+  background: currentColor;
+  transform: rotate(0deg);
+  transform-origin: center;
+  transition:
+    top 320ms cubic-bezier(0.22, 0.86, 0.28, 1),
+    bottom 320ms cubic-bezier(0.22, 0.86, 0.28, 1),
+    transform 320ms cubic-bezier(0.22, 0.86, 0.28, 1);
+}
+
+.menu-button__icon > span:first-child { top: 4px; }
+.menu-button__icon > span:last-child { bottom: 4px; }
+.menu-button[aria-expanded="true"] .menu-button__icon > span:first-child {
+  top: 8px;
+  transform: rotate(45deg);
+}
+.menu-button[aria-expanded="true"] .menu-button__icon > span:last-child {
+  bottom: 8.5px;
+  transform: rotate(-45deg);
+}
+
 .mobile-navigation {
   position: fixed;
   z-index: 19;
@@ -376,7 +408,22 @@ button {
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--background);
-  animation: mobile-navigation-enter 220ms ease-out both;
+  pointer-events: none;
+  transform: translate3d(0, -100%, 0);
+  visibility: hidden;
+  transition:
+    transform 520ms cubic-bezier(0.76, 0, 0.24, 1),
+    visibility 0s linear 520ms;
+  will-change: transform;
+}
+
+.mobile-navigation[data-open="true"] {
+  pointer-events: auto;
+  transform: translate3d(0, 0, 0);
+  visibility: visible;
+  transition:
+    transform 520ms cubic-bezier(0.76, 0, 0.24, 1),
+    visibility 0s linear 0s;
 }
 
 .mobile-navigation__inner {
@@ -402,11 +449,6 @@ button {
 .mobile-navigation .action-link {
   width: 100%;
   margin-top: 32px;
-}
-
-@keyframes mobile-navigation-enter {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 .action-link {
@@ -2489,8 +2531,26 @@ button {
 }
 
 @media (max-width: 768px) {
+  .hero__grid {
+    min-height: calc(100dvh - 64px);
+    justify-content: space-around;
+  }
+
   .hero__grid > .next-section-cue {
-    bottom: 16px;
+    position: static;
+    margin: 0 auto;
+    transform: none;
+  }
+
+  .internet-first-meaning,
+  .how-we-think,
+  .how-we-build,
+  .what-were-building,
+  .why-interfirst,
+  .careers-preview {
+    display: grid;
+    min-height: calc(100dvh - 64px);
+    align-items: center;
   }
 
   .internet-first-meaning {
@@ -2503,7 +2563,7 @@ button {
 
   .internet-first-meaning__inner {
     width: calc(100% - 48px);
-    padding-block: 72px;
+    padding-block: 64px;
   }
 
   .internet-first-meaning__title {
@@ -2528,7 +2588,7 @@ button {
   }
 
   .internet-first-meaning__principle {
-    padding-block: 32px;
+    padding-block: 26px;
   }
 
   .internet-first-meaning__principle + .internet-first-meaning__principle {
@@ -2557,7 +2617,7 @@ button {
 
   .how-we-think__inner {
     width: calc(100% - 48px);
-    padding-block: 80px;
+    padding-block: 64px;
   }
 
   .how-we-think__title {
@@ -2568,7 +2628,7 @@ button {
 
   .how-we-think__principles {
     display: block;
-    margin-top: 48px;
+    margin-top: 36px;
   }
 
   .how-we-think__principles::before,
@@ -2579,7 +2639,7 @@ button {
   .how-we-think__principle,
   .how-we-think__principle:nth-child(odd),
   .how-we-think__principle:nth-child(even) {
-    padding: 32px 0;
+    padding: 26px 0;
     border-top: 1px solid var(--border);
   }
 
@@ -2598,7 +2658,7 @@ button {
 
   .how-we-build__inner {
     width: calc(100% - 48px);
-    padding-block: 80px;
+    padding-block: 64px;
   }
 
   .how-we-build__transition-plane {
@@ -2617,12 +2677,12 @@ button {
   }
 
   .how-we-build__timeline {
-    margin-top: 48px;
+    margin-top: 36px;
   }
 
   .how-we-build__step {
     grid-template-columns: 56px minmax(0, 1fr);
-    min-height: 112px;
+    min-height: 96px;
   }
 
   .how-we-build__step:nth-child(odd) .how-we-build__step-content,
@@ -2656,7 +2716,7 @@ button {
 
   .what-were-building__inner {
     width: calc(100% - 48px);
-    padding-block: 80px;
+    padding-block: 64px;
   }
 
   .what-were-building__title {
@@ -2670,12 +2730,12 @@ button {
   }
 
   .what-were-building__grid {
-    margin-top: 48px;
+    margin-top: 36px;
   }
 
   .what-were-building__card {
-    min-height: 220px;
-    padding: 32px;
+    min-height: 0;
+    padding: 28px;
   }
 
   .what-were-building__card h3 {
@@ -2692,7 +2752,7 @@ button {
 
   .why-interfirst__inner {
     width: calc(100% - 48px);
-    padding-block: 80px;
+    padding-block: 64px;
   }
 
   .why-interfirst__title {
@@ -2706,12 +2766,12 @@ button {
   }
 
   .why-interfirst__standards {
-    margin-top: 48px;
+    margin-top: 36px;
   }
 
   .why-interfirst__standard {
     display: block;
-    padding-block: 32px;
+    padding-block: 26px;
   }
 
   .why-interfirst__standard h3 {
@@ -2729,7 +2789,7 @@ button {
 
   .careers-preview__inner {
     width: calc(100% - 48px);
-    padding-block: 96px;
+    padding-block: 72px;
   }
 
   .careers-preview__transition-plane {
@@ -2757,7 +2817,7 @@ button {
 
   .careers-preview__action {
     max-width: 480px;
-    margin: 48px auto 0;
+    margin: 36px auto 0;
   }
 
   .careers-preview__action .action-link {
@@ -2821,17 +2881,19 @@ button {
   }
 
   .brand-loader__flight {
-    top: 10px;
-    transform: translate(
-        calc(50vw - var(--brand-loader-gutter) - 50%),
-        calc(50vh - 10px - 50%)
-      )
-      scale(1.32);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.32);
+    transform-origin: center;
   }
 
   .brand-loader--moving .brand-loader__flight,
   .brand-loader--revealing .brand-loader__flight {
-    transform: translate(0, 0) scale(1);
+    transform: translate(
+        calc(-50vw + var(--brand-loader-gutter)),
+        calc(-50vh + 10px)
+      )
+      scale(1);
   }
 
   .brand__name {
@@ -2844,8 +2906,8 @@ button {
 
   .hero__grid {
     width: calc(100% - 48px);
-    min-height: calc(100svh - 64px);
-    padding-block: 48px;
+    min-height: calc(100dvh - 64px);
+    padding-block: 40px 32px;
   }
 
   .hero__index {
@@ -2904,7 +2966,7 @@ button {
   }
 
   .what-were-building__card {
-    min-height: 232px;
+    min-height: 0;
   }
 
   .what-were-building__closing {
@@ -2961,7 +3023,11 @@ button {
   }
 
   .mobile-navigation {
-    animation: none;
+    transition: none;
+  }
+
+  .menu-button__icon > span {
+    transition: none;
   }
 
   *,

@@ -23,6 +23,9 @@ export function CareersSequenceCanvas({ enabled, onLoadingChange, scrollContaine
   const drawTokenRef = useRef(0);
   const reducedMotionRef = useRef(false);
   const enabledRef = useRef(enabled);
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches,
+  );
   const [fallbackPath] = useState(() => getSequenceFramePath(0));
 
   const drawFramePosition = useCallback((framePosition) => {
@@ -206,13 +209,31 @@ export function CareersSequenceCanvas({ enabled, onLoadingChange, scrollContaine
 
   useEffect(() => {
     enabledRef.current = enabled;
+    if (isMobile) {
+      onLoadingChange?.(false);
+      return;
+    }
     updateFromScroll();
-  }, [enabled, updateFromScroll]);
+  }, [enabled, isMobile, onLoadingChange, updateFromScroll]);
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 640px)");
+    const onMobileChange = (event) => setIsMobile(event.matches);
+    setIsMobile(mobileQuery.matches);
+    mobileQuery.addEventListener?.("change", onMobileChange);
+    return () => mobileQuery.removeEventListener?.("change", onMobileChange);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return undefined;
+
+    if (isMobile) {
+      container.dataset.playbackMode = "mobile-static";
+      onLoadingChange?.(false);
+      return undefined;
+    }
 
     contextRef.current = canvas.getContext("2d", { alpha: false, desynchronized: true });
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -267,7 +288,7 @@ export function CareersSequenceCanvas({ enabled, onLoadingChange, scrollContaine
       pendingFrames.clear();
       contextRef.current = null;
     };
-  }, [loadFrame, requestFrame, updateFromScroll]);
+  }, [isMobile, loadFrame, onLoadingChange, requestFrame, updateFromScroll]);
 
   return (
     <div

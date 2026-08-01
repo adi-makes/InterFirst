@@ -486,6 +486,7 @@ export function ApplicationExperience({ onExit }) {
       </header>
 
       <main className="application-scroll-flow">
+        <p className="application-mobile-statement">We build internet-first companies.</p>
         <p className="sr-only" aria-live="polite">{announcement}</p>
         <form
           data-scroll-owner="document"

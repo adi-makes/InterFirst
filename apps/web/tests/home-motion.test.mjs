@@ -42,6 +42,7 @@ test("keeps the navbar loop quiet and resolves every entrance under reduced moti
   assert.match(css, /brand-module-loop 6s/);
   assert.match(css, /brand-loader__flight/);
   assert.match(css, /transition: transform 760ms/);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.brand-loader__flight \{[\s\S]*top: 50%;[\s\S]*left: 50%;[\s\S]*translate\(-50%, -50%\)/);
   assert.match(css, /hero--intro-ready \.hero__word/);
   assert.match(css, /\.brand-loader \{\s*display: none !important;/);
   assert.match(css, /\.brand--assembly \.brand__module,[\s\S]*animation: none !important;/);
@@ -53,7 +54,11 @@ test("uses an icon-only full-screen mobile navigation", async () => {
 
   assert.match(header, /aria-label=\{menuOpen \? "Close navigation" : "Open navigation"\}/);
   assert.doesNotMatch(header, /<span>Menu<\/span>/);
+  assert.doesNotMatch(header, /<List|<X/);
+  assert.match(header, /className="menu-button__icon"/);
   assert.match(header, /mobileNavigationRef/);
+  assert.match(header, /data-open=\{menuOpen\}/);
+  assert.match(header, /inert=\{!menuOpen\}/);
   assert.match(header, /document\.documentElement\.style\.overflow = "hidden"/);
   assert.match(header, /region\.setAttribute\("inert", ""\)/);
   assert.match(header, /event\.key !== "Tab"/);
@@ -61,7 +66,10 @@ test("uses an icon-only full-screen mobile navigation", async () => {
   assert.match(css, /\.mobile-navigation \{[\s\S]*inset: 0;[\s\S]*min-height: 100dvh;/);
   assert.match(css, /\.mobile-navigation__inner \{[\s\S]*min-height: 100dvh;/);
   assert.match(css, /\.menu-button \{[\s\S]*width: 48px;[\s\S]*min-height: 48px;/);
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.mobile-navigation \{\s*animation: none;/);
+  assert.match(css, /\.menu-button\[aria-expanded="true"\][\s\S]*rotate\(45deg\)[\s\S]*rotate\(-45deg\)/);
+  assert.match(css, /\.mobile-navigation \{[\s\S]*translate3d\(0, -100%, 0\)[\s\S]*transform 520ms/);
+  assert.match(css, /\.mobile-navigation\[data-open="true"\][\s\S]*translate3d\(0, 0, 0\)/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.mobile-navigation \{\s*transition: none;/);
 });
 
 test("reveals every Home chapter's text through the hero-style clipped rise", async () => {
@@ -118,4 +126,15 @@ test("keeps the concise What We're Building chapter and cue in one viewport", as
     css,
     /@media \(min-width: 769px\) and \(max-height: 980px\)[\s\S]*\.what-were-building__inner \{[\s\S]*height: 100%;[\s\S]*padding-block: 24px 64px;/,
   );
+});
+
+test("gives every mobile Home chapter one composed viewport without clipping growth", async () => {
+  const css = await readSource("src/app/globals.css");
+
+  assert.match(css, /@media \(max-width: 768px\)[\s\S]*\.hero__grid \{[\s\S]*min-height: calc\(100dvh - 64px\);[\s\S]*justify-content: space-around;/);
+  assert.match(css, /@media \(max-width: 768px\)[\s\S]*\.hero__grid > \.next-section-cue \{[\s\S]*position: static;[\s\S]*margin: 0 auto;[\s\S]*transform: none;/);
+  assert.match(css, /@media \(max-width: 768px\)[\s\S]*\.internet-first-meaning,[\s\S]*\.careers-preview \{[\s\S]*min-height: calc\(100dvh - 64px\);[\s\S]*align-items: center;/);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.hero__grid \{[\s\S]*min-height: calc\(100dvh - 64px\);[\s\S]*padding-block: 40px 32px;/);
+  assert.match(css, /@media \(max-width: 768px\)[\s\S]*\.internet-first-meaning__inner \{[\s\S]*padding-block: 64px;/);
+  assert.match(css, /@media \(max-width: 768px\)[\s\S]*\.what-were-building__card \{[\s\S]*min-height: 0;/);
 });
