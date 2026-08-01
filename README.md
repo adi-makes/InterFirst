@@ -18,6 +18,6 @@ npm run build
 
 - `apps/web/public/brand/interfirst-mark.png` — active website mark and favicon.
 - `apps/web/public/og.png` — branded Open Graph and large social-sharing card.
-- `apps/web/public/images/careers/frames/` — the 199 approved Careers animation frames, beginning at source frame 002.
+- `apps/web/public/images/careers/frames/` — exactly 192 owner-supplied HQ PNG frames (`001–192`) required by the scroll-driven Careers sequence; the superseded JPEG set and source folder remain local-only.
 
 Research, design references, QA captures, source materials, local planning documents, generated output, and duplicate source images are intentionally excluded from Git.
