@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ActionLink } from "./ActionLink.jsx";
 import { Brand } from "./Brand.jsx";
 
 const navigation = [
-  ["Home", "/"],
-  ["Careers", "/careers"],
+  ["Principles", "/#how-we-think"],
+  ["Building", "/#how-we-build"],
 ];
 
 export function SiteHeader({ isReady = true }) {
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef(null);
@@ -98,12 +100,12 @@ export function SiteHeader({ isReady = true }) {
         </nav>
 
         <ActionLink
+          ariaCurrent={pathname === "/careers" ? "page" : undefined}
           className="site-header__cta"
           href="/careers"
-          showArrow
           variant="primary"
         >
-          Join Us
+          View Careers
         </ActionLink>
 
         <button
@@ -142,8 +144,12 @@ export function SiteHeader({ isReady = true }) {
               {label}
             </Link>
           ))}
-          <ActionLink href="/careers" onClick={closeMenu} showArrow>
-            Join Us
+          <ActionLink
+            ariaCurrent={pathname === "/careers" ? "page" : undefined}
+            href="/careers"
+            onClick={closeMenu}
+          >
+            View Careers
           </ActionLink>
         </div>
       </nav>

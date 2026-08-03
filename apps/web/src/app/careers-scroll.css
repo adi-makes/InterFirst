@@ -317,9 +317,18 @@
   font-weight: 560;
 }
 
-.application-primary-action { padding: 13px 18px; border: 1px solid var(--text); background: var(--text); color: var(--surface); }
+.application-primary-action,
+.application-secondary-action {
+  padding: 13px 18px;
+  border: 1.5px solid var(--button-border);
+  background: transparent;
+  color: var(--button-text);
+  transition:
+    background-color var(--motion-primary-cta-duration) var(--motion-primary-cta-easing),
+    border-color var(--motion-primary-cta-duration) var(--motion-primary-cta-easing),
+    color var(--motion-primary-cta-duration) var(--motion-primary-cta-easing);
+}
 .application-primary-action:disabled { cursor: wait; opacity: 0.68; }
-.application-secondary-action { padding: 13px 18px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); }
 .application-text-action,
 .application-back-action { padding: 10px 0; border: 0; background: transparent; color: var(--text-secondary); }
 
@@ -344,6 +353,13 @@
 .application-review section > p { overflow-wrap: anywhere; margin: 10px 0 0; color: var(--text-secondary); line-height: 1.55; }
 
 @media (hover: hover) and (pointer: fine) {
+  .application-primary-action:not(:disabled):hover,
+  .application-secondary-action:not(:disabled):hover {
+    border-color: var(--button-hover-background);
+    background: var(--button-hover-background);
+    color: var(--button-hover-text);
+  }
+
   .application-role-option:hover { border-color: var(--text-secondary); background: rgb(255 255 255 / 0.94); transform: translateY(-2px); }
   .application-choice__options label:hover span { border-color: var(--text-secondary); background: var(--surface); }
 }

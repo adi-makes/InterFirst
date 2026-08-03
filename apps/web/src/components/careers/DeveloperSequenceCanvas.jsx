@@ -334,10 +334,9 @@ export function CareersSequenceCanvas({ enabled, scrollContainerRef }) {
   useEffect(() => {
     enabledRef.current = enabled;
     if (isMobile) return;
-    if (enabled) {
-      for (let index = 0; index < careersSequence.initialPreloadFrames; index += 1) {
-        loadFrameRef.current(index);
-      }
+    loadFrameRef.current(0, { priority: true });
+    for (let index = 1; index < careersSequence.initialPreloadFrames; index += 1) {
+      loadFrameRef.current(index);
     }
     updateFromScroll();
   }, [enabled, isMobile, updateFromScroll]);
@@ -410,6 +409,9 @@ export function CareersSequenceCanvas({ enabled, scrollContainerRef }) {
       motionQuery.removeEventListener?.("change", onMotionPreferenceChange);
       window.cancelAnimationFrame(scrollRequestRef.current);
       window.cancelAnimationFrame(animationRequestRef.current);
+      scrollRequestRef.current = 0;
+      animationRequestRef.current = 0;
+      lastAnimationTimeRef.current = 0;
       loadQueueRef.current.splice(0).forEach((task) => task.resolve(null));
       decodedFrames.forEach(releaseImage);
       decodedFrames.clear();

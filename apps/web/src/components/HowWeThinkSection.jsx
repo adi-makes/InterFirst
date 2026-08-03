@@ -76,8 +76,7 @@ export function HowWeThinkSection() {
             delay={70}
             id="how-we-think-title"
           >
-            <span>Good products are built with</span>
-            <span>clear thinking, not bigger teams.</span>
+            Good products start with clarity.
           </RevealText>
           </header>
 
@@ -103,7 +102,7 @@ export function HowWeThinkSection() {
           </ol>
         </div>
 
-        <NextSectionCue href="#how-we-build" label="How we build" />
+        <NextSectionCue href="#how-we-build" label="See how we build" />
       </div>
     </section>
   );

@@ -6,7 +6,6 @@ const sectionPlanes = [
   ["#how-we-think", ".how-we-think__transition-plane"],
   ["#how-we-build", ".how-we-build__transition-plane"],
   ["#what-were-building", ".what-were-building__transition-plane"],
-  ["#why-interfirst", ".why-interfirst__transition-plane"],
   ["#careers", ".careers-preview__transition-plane"],
 ];
 

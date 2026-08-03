@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
 import test from "node:test";
 import {
   careersSequence,
@@ -8,7 +8,7 @@ import {
   getSequenceSegment,
 } from "../src/careers/developerSequence.js";
 
-test("addresses all 192 HQ PNG frames without the legacy JPEG set", () => {
+test("addresses all 192 optimized WebP delivery frames", () => {
   assert.equal(careersSequence.frameCount, 192);
   assert.equal(careersSequence.maxCanvasWidth, 3840);
   assert.equal(careersSequence.maxCanvasHeight, 2160);
@@ -22,8 +22,25 @@ test("addresses all 192 HQ PNG frames without the legacy JPEG set", () => {
   assert.equal(careersSequence.maxFrameAdvancePerSecond, 42);
   assert.equal(careersSequence.maximumAnimationDeltaMs, 32);
   assert.ok(careersSequence.smoothingTimeConstantMs > 0);
-  assert.equal(getSequenceFramePath(0).endsWith("ezgif-frame-001.png"), true);
-  assert.equal(getSequenceFramePath(191).endsWith("ezgif-frame-192.png"), true);
+  assert.equal(careersSequence.extension, "webp");
+  assert.equal(getSequenceFramePath(0).endsWith("ezgif-frame-001.webp"), true);
+  assert.equal(getSequenceFramePath(191).endsWith("ezgif-frame-192.webp"), true);
+});
+
+test("ships a complete bounded-size WebP delivery sequence", async () => {
+  const frameDirectory = new URL("../public/images/careers/frames/", import.meta.url);
+  const frameNames = (await readdir(frameDirectory))
+    .filter((name) => /^ezgif-frame-\d{3}\.webp$/.test(name))
+    .sort();
+  const frameSizes = await Promise.all(
+    frameNames.map((name) => stat(new URL(name, frameDirectory)).then((file) => file.size)),
+  );
+
+  assert.equal(frameNames.length, careersSequence.frameCount);
+  assert.equal(frameNames[0], "ezgif-frame-001.webp");
+  assert.equal(frameNames.at(-1), "ezgif-frame-192.webp");
+  assert.ok(frameSizes.every((size) => size > 0));
+  assert.ok(frameSizes.reduce((total, size) => total + size, 0) < 16_000_000);
 });
 
 test("divides the sequence into seven continuous application transitions", () => {
@@ -58,6 +75,9 @@ test("keeps applicant values outside the decorative animation engine", async () 
   assert.match(source, /dataset\.playbackMode = "scroll"/);
   assert.match(source, /requestFrame\(frameIndex\)/);
   assert.match(source, /window\.requestAnimationFrame\(animateTowardTarget\)/);
+  assert.match(source, /window\.cancelAnimationFrame\(animationRequestRef\.current\);[\s\S]*animationRequestRef\.current = 0;/);
+  assert.match(source, /scrollRequestRef\.current = 0;/);
+  assert.match(source, /lastAnimationTimeRef\.current = 0;/);
   assert.match(source, /context\.globalAlpha = blend/);
   assert.match(source, /Math\.exp\(-elapsed \/ careersSequence\.smoothingTimeConstantMs\)/);
   assert.match(source, /loadQueueRef/);
@@ -75,6 +95,8 @@ test("keeps applicant values outside the decorative animation engine", async () 
   assert.match(source, /framesRef\.current\.size < careersSequence\.initialPreloadFrames/);
   assert.match(source, /const loadFrameRef = useRef\(null\)/);
   assert.match(source, /loadFrameRef\.current = loadFrame/);
+  assert.match(source, /loadFrameRef\.current\(0, \{ priority: true \}\)/);
+  assert.match(source, /for \(let index = 1; index < careersSequence\.initialPreloadFrames; index \+= 1\)/);
   assert.match(source, /\}, \[enabled, isMobile, updateFromScroll\]\);/);
   assert.match(source, /loadQueueRef\.current\.findIndex/);
   assert.match(source, /Math\.abs\(index - displayedPosition\)/);
@@ -93,6 +115,14 @@ test("unlocks one freely scrollable question set for every role", async () => {
   const css = await readFile(
     new URL("../src/app/careers-scroll.css", import.meta.url),
     "utf8",
+  );
+  assert.match(
+    css,
+    /\.application-primary-action,[\s\S]{0,80}\.application-secondary-action \{[\s\S]{0,180}border: 1\.5px solid var\(--button-border\);[\s\S]{0,100}background: transparent;[\s\S]{0,60}color: var\(--button-text\);/,
+  );
+  assert.match(
+    css,
+    /\.application-primary-action:not\(:disabled\):hover,[\s\S]{0,120}background: var\(--button-hover-background\);[\s\S]{0,80}color: var\(--button-hover-text\);/,
   );
   const validationIndex = source.indexOf("const validationSteps = [1, 2, 3, 4, 6]");
 

@@ -12,7 +12,6 @@ import { SectionContinuity } from "./SectionContinuity.jsx";
 import { SiteFooter } from "./SiteFooter.jsx";
 import { SiteHeader } from "./SiteHeader.jsx";
 import { WhatWereBuildingSection } from "./WhatWereBuildingSection.jsx";
-import { WhyInterFirstSection } from "./WhyInterFirstSection.jsx";
 
 let hasPlayedHomeIntro = false;
 
@@ -132,7 +131,6 @@ export function HomePage() {
             <HowWeThinkSection />
             <HowWeBuildSection />
             <WhatWereBuildingSection />
-            <WhyInterFirstSection />
             <CareersPreviewSection />
           </main>
           <SiteFooter />

@@ -129,7 +129,7 @@ export function WhatWereBuildingSection() {
           </RevealText>
         </div>
 
-        <NextSectionCue href="#why-interfirst" label="Why InterFirst" />
+        <NextSectionCue href="#careers" label="View careers" />
       </div>
     </section>
   );

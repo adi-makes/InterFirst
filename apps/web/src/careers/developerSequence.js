@@ -2,7 +2,7 @@ export const careersSequence = Object.freeze({
   folderPath: "/images/careers/frames",
   frameCount: 192,
   firstFrameNumber: 1,
-  extension: "png",
+  extension: "webp",
   filenamePrefix: "ezgif-frame-",
   filenamePadding: 3,
   segmentCount: 7,

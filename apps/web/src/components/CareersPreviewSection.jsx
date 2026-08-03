@@ -81,7 +81,7 @@ export function CareersPreviewSection() {
               className="careers-preview__action-link"
               delay={330}
             >
-              <ActionLink href="/careers" showArrow>
+              <ActionLink href="/careers">
                 See Open Roles
               </ActionLink>
             </RevealText>

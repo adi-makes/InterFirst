@@ -62,8 +62,6 @@ export function SiteFooter() {
           <ActionLink
             className="site-footer__cta"
             href="/careers"
-            showArrow
-            variant="quiet"
           >
             Join Us
           </ActionLink>

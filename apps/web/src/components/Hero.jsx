@@ -12,13 +12,13 @@ export function Hero({ isReady = true }) {
       <HeroNetwork />
       <div className="hero__grid">
         <div className="hero__transition-plane">
+          <div className="hero__primary">
           <div className="hero__index">
-            <span className="hero__index-rule" aria-hidden="true" />
             <p>Product · Systems · Company</p>
           </div>
 
           <div className="hero__content">
-          <h1 id="hero-title" tabIndex="-1">
+            <h1 id="hero-title" tabIndex="-1">
               <span className="hero__line">
                 <span className="hero__word-clip">
                   <span className="hero__word" style={{ "--word-index": 0 }}>
@@ -46,21 +46,23 @@ export function Hero({ isReady = true }) {
                 </span>
               </span>
             </h1>
+          </div>
+          </div>
+          <aside className="hero__support" aria-label="About InterFirst">
             <p className="hero__description">
               We design the product, systems, and company as one connected whole from
               day one.
             </p>
             <div className="hero__actions">
-              <ActionLink href="/careers" showArrow>
-                View Careers
+              <ActionLink href="/careers">
+                See Open Roles
               </ActionLink>
             </div>
-          </div>
+          </aside>
         </div>
-
         <NextSectionCue
           href="#internet-first-meaning"
-          label="What internet-first means"
+          label="Explore what internet-first means"
         />
       </div>
     </section>

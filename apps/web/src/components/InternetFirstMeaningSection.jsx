@@ -8,7 +8,7 @@ const principles = [
     number: "01",
     title: "Designed for the internet.",
     description:
-      "The internet is the starting point, not a channel added later.",
+      "The internet is the starting point—not a channel added later.",
   },
   {
     number: "02",
@@ -20,7 +20,7 @@ const principles = [
     number: "03",
     title: "Built to keep evolving.",
     description:
-      "Products improve continuously through use, feedback, and thoughtful iteration.",
+      "Products improve continuously through real usage, feedback, and iteration.",
   },
 ];
 
@@ -66,53 +66,52 @@ export function InternetFirstMeaningSection() {
       <div className="internet-first-meaning__inner">
         <div className="internet-first-meaning__transition-plane">
           <header className="internet-first-meaning__intro">
-          <ChapterLabel className="internet-first-meaning__label">
-            What internet-first means
-          </ChapterLabel>
-          <RevealText
-            as="h2"
-            className="internet-first-meaning__title meaning-reveal"
-            delay={70}
-            id="internet-first-meaning-title"
-          >
-            <span>Internet-first isn&apos;t an industry.</span>
-            <span>It&apos;s a way of building.</span>
-          </RevealText>
-          <RevealText
-            as="p"
-            className="internet-first-meaning__description meaning-reveal"
-            delay={150}
-          >
-            We design products, systems, and companies around how people discover,
-            use, share, and improve them through the internet.
-          </RevealText>
+            <ChapterLabel className="internet-first-meaning__label">
+              What internet-first means
+            </ChapterLabel>
+            <RevealText
+              as="h2"
+              className="internet-first-meaning__title meaning-reveal"
+              delay={70}
+              id="internet-first-meaning-title"
+            >
+              <span>Internet-first is how we build.</span>
+            </RevealText>
+            <RevealText
+              as="p"
+              className="internet-first-meaning__description meaning-reveal"
+              delay={150}
+            >
+              We build products, systems, and companies around how people discover,
+              use, and improve them through the internet.
+            </RevealText>
           </header>
 
           <div className="internet-first-meaning__divider" aria-hidden="true" />
 
           <ol className="internet-first-meaning__principles">
             {principles.map((principle, index) => (
-              <li className="internet-first-meaning__principle" key={principle.number}>
-                <RevealText
-                  as="span"
-                  className="internet-first-meaning__number"
-                  delay={240 + index * 120}
-                  aria-hidden="true"
-                >
+              <li
+                className="internet-first-meaning__principle"
+                key={principle.number}
+                style={{ "--principle-index": index }}
+              >
+                <span className="internet-first-meaning__number" aria-hidden="true">
                   {principle.number}
-                </RevealText>
-                <RevealText as="h3" delay={290 + index * 120}>
-                  {principle.title}
-                </RevealText>
-                <RevealText as="p" delay={350 + index * 120}>
+                </span>
+                <h3>{principle.title}</h3>
+                <p
+                  className="internet-first-meaning__principle-description"
+                >
                   {principle.description}
-                </RevealText>
+                </p>
               </li>
             ))}
           </ol>
+
         </div>
 
-        <NextSectionCue href="#how-we-think" label="How we think" />
+        <NextSectionCue href="#how-we-think" label="Explore our principles" />
       </div>
     </section>
   );

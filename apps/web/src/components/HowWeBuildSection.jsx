@@ -88,8 +88,14 @@ export function HowWeBuildSection() {
     let disposed = false;
     let setupVersion = 0;
     let gsapContext = null;
+    let introObserver = null;
+    let refreshFrame = 0;
 
     const clearTimeline = () => {
+      introObserver?.disconnect();
+      introObserver = null;
+      window.cancelAnimationFrame(refreshFrame);
+      refreshFrame = 0;
       gsapContext?.revert();
       gsapContext = null;
       section.classList.remove("how-we-build--scroll-ready");
@@ -117,6 +123,16 @@ export function HowWeBuildSection() {
       );
       const renderedSteps = stepRefs.current.filter(Boolean);
       const pathLength = progressPath.getTotalLength();
+      const homeExperience = section.closest(".home-experience");
+      const refreshScrollBounds = () => {
+        window.cancelAnimationFrame(refreshFrame);
+        refreshFrame = window.requestAnimationFrame(() => {
+          refreshFrame = window.requestAnimationFrame(() => {
+            if (!disposed && version === setupVersion) ScrollTrigger.refresh();
+            refreshFrame = 0;
+          });
+        });
+      };
 
       section.classList.add("how-we-build--scroll-ready");
       section.dataset.timelineController = "gsap-scrolltrigger";
@@ -238,6 +254,29 @@ export function HowWeBuildSection() {
             );
         });
       }, section);
+
+      if (
+        !homeExperience
+        || ["revealing", "ready"].includes(homeExperience.dataset.homeIntroPhase)
+      ) {
+        refreshScrollBounds();
+      } else {
+        introObserver = new MutationObserver(() => {
+          if (
+            ["revealing", "ready"].includes(
+              homeExperience.dataset.homeIntroPhase,
+            )
+          ) {
+            introObserver?.disconnect();
+            introObserver = null;
+            refreshScrollBounds();
+          }
+        });
+        introObserver.observe(homeExperience, {
+          attributeFilter: ["data-home-intro-phase"],
+          attributes: true,
+        });
+      }
     };
 
     const configureTimeline = () => {
@@ -365,7 +404,7 @@ export function HowWeBuildSection() {
 
         <NextSectionCue
           href="#what-were-building"
-          label="What we're building"
+          label="See what we're building"
         />
       </div>
     </section>
