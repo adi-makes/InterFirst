@@ -7,7 +7,7 @@ export default function manifest() {
     start_url: "/",
     display: "standalone",
     background_color: "#fafaf8",
-    theme_color: "#ffffff",
+    theme_color: "#fafaf8",
     icons: [
       {
         src: "/brand/interfirst-mark.png",

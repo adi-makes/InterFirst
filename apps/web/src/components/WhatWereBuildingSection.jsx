@@ -31,23 +31,32 @@ const opportunities = [
   },
 ];
 
-export function WhatWereBuildingSection() {
+export function WhatWereBuildingSection({
+  chapterIndex = 4,
+  isRevealEnabled = true,
+  onRevealEntered,
+}) {
   const sectionRef = useRef(null);
   const [hasEntered, setHasEntered] = useState(false);
 
   useEffect(() => {
     const section = sectionRef.current;
-    if (!section || hasEntered) return undefined;
+    if (!section || hasEntered || !isRevealEnabled) return undefined;
+
+    const enterSection = () => {
+      setHasEntered(true);
+      onRevealEntered?.(chapterIndex);
+    };
 
     if (!("IntersectionObserver" in window)) {
-      const frame = window.requestAnimationFrame(() => setHasEntered(true));
+      const frame = window.requestAnimationFrame(enterSection);
       return () => window.cancelAnimationFrame(frame);
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setHasEntered(true);
+          enterSection();
           observer.disconnect();
         }
       },
@@ -59,7 +68,7 @@ export function WhatWereBuildingSection() {
 
     observer.observe(section);
     return () => observer.disconnect();
-  }, [hasEntered]);
+  }, [chapterIndex, hasEntered, isRevealEnabled, onRevealEntered]);
 
   return (
     <section
@@ -73,37 +82,37 @@ export function WhatWereBuildingSection() {
       <div className="what-were-building__inner">
         <div className="what-were-building__transition-plane">
           <header className="what-were-building__intro">
-          <ChapterLabel className="what-were-building__label">
-            What we&apos;re building
-          </ChapterLabel>
-          <RevealText
-            as="h2"
-            className="what-were-building__title what-were-building__reveal"
-            delay={70}
-            id="what-were-building-title"
-          >
-            <span>The internet creates opportunities worth exploring.</span>
-          </RevealText>
-          <RevealText
-            as="p"
-            className="what-were-building__description what-were-building__reveal"
-            delay={150}
-          >
-            Not industries to chase. Problems worth solving through thoughtful
-            products and companies.
-          </RevealText>
+            <ChapterLabel className="what-were-building__label">
+              What we&apos;re building
+            </ChapterLabel>
+            <RevealText
+              as="h2"
+              className="what-were-building__title what-were-building__reveal"
+              delay={70}
+              id="what-were-building-title"
+            >
+              <span>Opportunities</span>
+              <span>worth exploring.</span>
+            </RevealText>
+            <RevealText
+              as="p"
+              className="what-were-building__description what-were-building__reveal"
+              delay={150}
+            >
+              We follow problems worth solving—not industries or categories.
+            </RevealText>
           </header>
 
-          <ul className="what-were-building__grid">
+          <ol className="what-were-building__opportunities">
             {opportunities.map((opportunity, index) => (
               <li
-                className="what-were-building__card"
+                className="what-were-building__opportunity"
                 key={opportunity.title}
-                style={{ "--card-index": index }}
+                style={{ "--opportunity-index": index }}
               >
                 <RevealText
                   as="span"
-                  className="what-were-building__card-number"
+                  className="what-were-building__opportunity-number"
                   delay={230 + index * 105}
                   aria-hidden="true"
                 >
@@ -117,16 +126,7 @@ export function WhatWereBuildingSection() {
                 </RevealText>
               </li>
             ))}
-          </ul>
-
-          <RevealText
-            as="p"
-            className="what-were-building__closing what-were-building__reveal"
-            delay={820}
-          >
-            The next great internet-first company may not fit an existing
-            category. We&apos;re comfortable with that.
-          </RevealText>
+          </ol>
         </div>
 
         <NextSectionCue href="#careers" label="View careers" />

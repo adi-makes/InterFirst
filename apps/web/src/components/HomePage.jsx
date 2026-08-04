@@ -1,7 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useState } from "react";
-import { AmbientEnvironment } from "./AmbientEnvironment.jsx";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Brand } from "./Brand.jsx";
 import { CareersPreviewSection } from "./CareersPreviewSection.jsx";
 import { Hero } from "./Hero.jsx";
@@ -21,8 +20,13 @@ const INTRO_TIMINGS = Object.freeze({
   complete: 2180,
 });
 
+const HERO_REVEAL_COMPLETE_MS = 2200;
+const CHAPTER_REVEAL_COMPLETE_MS = 1700;
+
 export function HomePage() {
   const [hasHydrated, setHasHydrated] = useState(false);
+  const [chapterStage, setChapterStage] = useState(0);
+  const chapterTimersRef = useRef(new Map());
   const [introPhase, setIntroPhase] = useState(() =>
     hasPlayedHomeIntro ? "ready" : "waiting",
   );
@@ -77,6 +81,45 @@ export function HomePage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!contentReady) return undefined;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setChapterStage(6);
+      return undefined;
+    }
+
+    const timer = window.setTimeout(
+      () => setChapterStage((stage) => Math.max(stage, 1)),
+      HERO_REVEAL_COMPLETE_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [contentReady]);
+
+  useEffect(
+    () => () => {
+      chapterTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+      chapterTimersRef.current.clear();
+    },
+    [],
+  );
+
+  const handleChapterEntered = useCallback((chapterIndex) => {
+    if (chapterTimersRef.current.has(chapterIndex)) return;
+
+    const revealImmediately = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const timer = window.setTimeout(
+      () => {
+        setChapterStage((stage) => Math.max(stage, chapterIndex + 1));
+        chapterTimersRef.current.delete(chapterIndex);
+      },
+      revealImmediately ? 0 : CHAPTER_REVEAL_COMPLETE_MS,
+    );
+    chapterTimersRef.current.set(chapterIndex, timer);
+  }, []);
+
   return (
     <div
       className={`home-experience home-experience--${introPhase}`}
@@ -100,7 +143,6 @@ export function HomePage() {
           }
         `}</style>
       </noscript>
-      <AmbientEnvironment />
       {introVisible ? (
         <div
           aria-live="polite"
@@ -127,11 +169,31 @@ export function HomePage() {
           <SectionContinuity />
           <main id="main-content">
             <Hero isReady={contentReady} />
-            <InternetFirstMeaningSection />
-            <HowWeThinkSection />
-            <HowWeBuildSection />
-            <WhatWereBuildingSection />
-            <CareersPreviewSection />
+            <InternetFirstMeaningSection
+              chapterIndex={1}
+              isRevealEnabled={chapterStage >= 1}
+              onRevealEntered={handleChapterEntered}
+            />
+            <HowWeThinkSection
+              chapterIndex={2}
+              isRevealEnabled={chapterStage >= 2}
+              onRevealEntered={handleChapterEntered}
+            />
+            <HowWeBuildSection
+              chapterIndex={3}
+              isRevealEnabled={chapterStage >= 3}
+              onRevealEntered={handleChapterEntered}
+            />
+            <WhatWereBuildingSection
+              chapterIndex={4}
+              isRevealEnabled={chapterStage >= 4}
+              onRevealEntered={handleChapterEntered}
+            />
+            <CareersPreviewSection
+              chapterIndex={5}
+              isRevealEnabled={chapterStage >= 5}
+              onRevealEntered={handleChapterEntered}
+            />
           </main>
           <SiteFooter />
         </div>

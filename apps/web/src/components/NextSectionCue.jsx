@@ -1,3 +1,4 @@
+import { CaretDown } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
 export function NextSectionCue({ href, label }) {
@@ -24,7 +25,7 @@ export function NextSectionCue({ href, label }) {
     >
       <span>{label}</span>
       <span aria-hidden="true" className="next-section-cue__symbol">
-        <span>&gt;</span>
+        <CaretDown size={18} weight="light" />
       </span>
     </a>
   );

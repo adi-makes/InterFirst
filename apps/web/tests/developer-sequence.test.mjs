@@ -118,11 +118,15 @@ test("unlocks one freely scrollable question set for every role", async () => {
   );
   assert.match(
     css,
-    /\.application-primary-action,[\s\S]{0,80}\.application-secondary-action \{[\s\S]{0,180}border: 1\.5px solid var\(--button-border\);[\s\S]{0,100}background: transparent;[\s\S]{0,60}color: var\(--button-text\);/,
+    /\.application-primary-action \{[\s\S]{0,100}border: 1\.5px solid var\(--button-border\);[\s\S]{0,100}background: var\(--button-background\);[\s\S]{0,60}color: var\(--button-text\);/,
   );
   assert.match(
     css,
-    /\.application-primary-action:not\(:disabled\):hover,[\s\S]{0,120}background: var\(--button-hover-background\);[\s\S]{0,80}color: var\(--button-hover-text\);/,
+    /\.application-secondary-action \{[\s\S]{0,100}border: 1px solid var\(--secondary-button-border\);[\s\S]{0,100}background: var\(--secondary-button-background\);[\s\S]{0,60}color: var\(--secondary-button-text\);/,
+  );
+  assert.match(
+    css,
+    /\.application-primary-action:not\(:disabled\):hover \{[\s\S]{0,160}background: var\(--button-hover-background\);[\s\S]{0,80}color: var\(--button-hover-text\);/,
   );
   const validationIndex = source.indexOf("const validationSteps = [1, 2, 3, 4, 6]");
 
@@ -173,6 +177,10 @@ test("unlocks one freely scrollable question set for every role", async () => {
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.application-field textarea \{ resize: none; \}/);
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.careers-sequence \{[\s\S]*background-image: var\(--careers-sequence-fallback\);/);
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.careers-sequence canvas \{\s*display: none;/);
+  assert.match(css, /\.application-checkpoint__card \{[\s\S]*border: 1px solid var\(--border-strong\);[\s\S]*background: rgb\(252 252 251 \/ 0\.94\);[\s\S]*box-shadow: none;/);
+  assert.match(css, /\.application-main__meta \{[\s\S]*background: rgb\(238 243 248 \/ 0\.72\);/);
+  assert.match(css, /\.application-role-option\[aria-pressed="true"\] \{[\s\S]*background: rgb\(238 243 248 \/ 0\.96\);/);
+  assert.doesNotMatch(css, /rgb\(17 17 17/);
   assert.doesNotMatch(css, /application-mobile-statement/);
   assert.match(css, /\.careers-sequence canvas \{[\s\S]*opacity: 0;/);
   assert.match(css, /\.careers-sequence\[data-ready="true"\] canvas \{\s*opacity: 1;/);

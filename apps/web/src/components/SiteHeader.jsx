@@ -15,7 +15,6 @@ export function SiteHeader({ isReady = true }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef(null);
   const mobileNavigationRef = useRef(null);
-  const firstMobileLinkRef = useRef(null);
 
   useEffect(() => {
     const updateHeader = () => setIsScrolled(window.scrollY > 16);
@@ -27,7 +26,6 @@ export function SiteHeader({ isReady = true }) {
   useEffect(() => {
     if (!menuOpen) return undefined;
 
-    firstMobileLinkRef.current?.focus();
     const previousHtmlOverflow = document.documentElement.style.overflow;
     const previousBodyOverflow = document.body.style.overflow;
     const backgroundRegions = [...document.querySelectorAll("main, footer")].map((region) => ({
@@ -134,12 +132,11 @@ export function SiteHeader({ isReady = true }) {
         ref={mobileNavigationRef}
       >
         <div className="mobile-navigation__inner">
-          {navigation.map(([label, href], index) => (
+          {navigation.map(([label, href]) => (
             <Link
               href={href}
               key={href}
               onClick={closeMenu}
-              ref={index === 0 ? firstMobileLinkRef : undefined}
             >
               {label}
             </Link>

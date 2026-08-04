@@ -24,23 +24,32 @@ const principles = [
   },
 ];
 
-export function InternetFirstMeaningSection() {
+export function InternetFirstMeaningSection({
+  chapterIndex = 1,
+  isRevealEnabled = true,
+  onRevealEntered,
+}) {
   const sectionRef = useRef(null);
   const [hasEntered, setHasEntered] = useState(false);
 
   useEffect(() => {
     const section = sectionRef.current;
-    if (!section || hasEntered) return undefined;
+    if (!section || hasEntered || !isRevealEnabled) return undefined;
+
+    const enterSection = () => {
+      setHasEntered(true);
+      onRevealEntered?.(chapterIndex);
+    };
 
     if (!("IntersectionObserver" in window)) {
-      const frame = window.requestAnimationFrame(() => setHasEntered(true));
+      const frame = window.requestAnimationFrame(enterSection);
       return () => window.cancelAnimationFrame(frame);
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setHasEntered(true);
+          enterSection();
           observer.disconnect();
         }
       },
@@ -52,7 +61,7 @@ export function InternetFirstMeaningSection() {
 
     observer.observe(section);
     return () => observer.disconnect();
-  }, [hasEntered]);
+  }, [chapterIndex, hasEntered, isRevealEnabled, onRevealEntered]);
 
   return (
     <section
@@ -87,12 +96,10 @@ export function InternetFirstMeaningSection() {
             </RevealText>
           </header>
 
-          <div className="internet-first-meaning__divider" aria-hidden="true" />
-
-          <ol className="internet-first-meaning__principles">
+          <ol className="internet-first-meaning__principles meaning-card-grid">
             {principles.map((principle, index) => (
               <li
-                className="internet-first-meaning__principle"
+                className="internet-first-meaning__principle meaning-card"
                 key={principle.number}
                 style={{ "--principle-index": index }}
               >

@@ -23,7 +23,7 @@ function resolveMetadataBase() {
 
 export const viewport = {
   colorScheme: "light",
-  themeColor: "#ffffff",
+  themeColor: "#fafaf8",
   viewportFit: "cover",
 };
 
