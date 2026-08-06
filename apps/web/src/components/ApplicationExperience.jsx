@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowRight, Check } from "@phosphor-icons/react";
 import { Brand } from "./Brand.jsx";
-import { CareersSequenceCanvas } from "./careers/DeveloperSequenceCanvas.jsx";
+import { CareersImageSequence } from "./careers/CareersImageSequence.jsx";
 import {
   createEmptyValues,
   draftStorageKey,
@@ -21,33 +21,6 @@ const stepLabels = [
   "About you",
   "Review",
 ];
-
-const applicationWheelSpeed = 1.65;
-const mobileApplicationWheelSpeed = 2.35;
-const mobileCardTouchScrollSpeed = 1.35;
-
-function routeApplicationWheel(event) {
-  if (
-    event.ctrlKey
-    || event.defaultPrevented
-    || !Number.isFinite(event.deltaY)
-    || event.deltaY === 0
-    || Math.abs(event.deltaY) <= Math.abs(event.deltaX)
-  ) return;
-
-  const verticalDelta = event.deltaMode === WheelEvent.DOM_DELTA_LINE
-    ? event.deltaY * 16
-    : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
-      ? event.deltaY * window.innerHeight
-      : event.deltaY;
-
-  event.preventDefault();
-  const scrollElement = document.scrollingElement || document.documentElement;
-  const wheelSpeed = window.matchMedia("(max-width: 640px)").matches
-    ? mobileApplicationWheelSpeed
-    : applicationWheelSpeed;
-  scrollElement.scrollTop += verticalDelta * wheelSpeed;
-}
 
 function Field({ error, help, id, label, optional = false, ...inputProps }) {
   const helpId = help ? `${id}-help` : undefined;
@@ -284,11 +257,8 @@ function Confirmation({ onBackToCareers, role }) {
 }
 
 export function ApplicationExperience({ onExit }) {
-  const scrollContainerRef = useRef(null);
-  const formRef = useRef(null);
   const checkpointRefs = useRef([]);
   const stepControlRefs = useRef([]);
-  const roleRef = useRef(null);
   const saveTimerRef = useRef(null);
   const submitTimerRef = useRef(null);
   const [step, setStep] = useState(0);
@@ -299,7 +269,6 @@ export function ApplicationExperience({ onExit }) {
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const [submissionState, setSubmissionState] = useState("idle");
   const [announcement, setAnnouncement] = useState("Choose a role to begin.");
-  roleRef.current = role;
   const configuration = role ? roleConfigurations[role] : null;
   const storageKey = useMemo(() => (role ? draftStorageKey(role) : null), [role]);
   const stepRefCallbacks = useMemo(() => Array.from({ length: 8 }, (_, index) => (node) => { stepControlRefs.current[index] = node; }), []);
@@ -385,75 +354,6 @@ export function ApplicationExperience({ onExit }) {
     window.clearTimeout(submitTimerRef.current);
   }, []);
 
-  useEffect(() => {
-    const form = formRef.current;
-    if (!form) return undefined;
-
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let lastTouchY = 0;
-    let directionLocked = false;
-    let verticalGesture = false;
-    let cardGesture = false;
-
-    const onTouchStart = (event) => {
-      cardGesture = false;
-      if (
-        !roleRef.current
-        || !window.matchMedia("(max-width: 640px)").matches
-        || event.touches.length !== 1
-        || !(event.target instanceof Element)
-        || !event.target.closest(".application-checkpoint__card")
-      ) return;
-
-      const touch = event.touches[0];
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
-      lastTouchY = touch.clientY;
-      directionLocked = false;
-      verticalGesture = false;
-      cardGesture = true;
-    };
-
-    const onTouchMove = (event) => {
-      if (!cardGesture || event.touches.length !== 1) return;
-      const touch = event.touches[0];
-      const totalX = touch.clientX - touchStartX;
-      const totalY = touch.clientY - touchStartY;
-
-      if (!directionLocked) {
-        if (Math.hypot(totalX, totalY) < 12) return;
-        directionLocked = true;
-        verticalGesture = Math.abs(totalY) > Math.abs(totalX);
-      }
-      if (!verticalGesture || !event.cancelable) return;
-
-      event.preventDefault();
-      const scrollElement = document.scrollingElement || document.documentElement;
-      scrollElement.scrollTop += (lastTouchY - touch.clientY) * mobileCardTouchScrollSpeed;
-      lastTouchY = touch.clientY;
-    };
-
-    const finishTouch = () => {
-      cardGesture = false;
-      directionLocked = false;
-      verticalGesture = false;
-    };
-
-    form.addEventListener("wheel", routeApplicationWheel, { capture: true, passive: false });
-    form.addEventListener("touchstart", onTouchStart, { capture: true, passive: true });
-    form.addEventListener("touchmove", onTouchMove, { capture: true, passive: false });
-    form.addEventListener("touchend", finishTouch, { capture: true, passive: true });
-    form.addEventListener("touchcancel", finishTouch, { capture: true, passive: true });
-    return () => {
-      form.removeEventListener("wheel", routeApplicationWheel, { capture: true });
-      form.removeEventListener("touchstart", onTouchStart, { capture: true });
-      form.removeEventListener("touchmove", onTouchMove, { capture: true });
-      form.removeEventListener("touchend", finishTouch, { capture: true });
-      form.removeEventListener("touchcancel", finishTouch, { capture: true });
-    };
-  }, [showExitConfirmation, submissionState]);
-
   const onChange = (field, value) => {
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => {
@@ -536,8 +436,8 @@ export function ApplicationExperience({ onExit }) {
   ];
 
   return (
-    <div className="application-shell" ref={scrollContainerRef}>
-      <CareersSequenceCanvas enabled={Boolean(role)} scrollContainerRef={scrollContainerRef} />
+    <div className="application-shell">
+      <CareersImageSequence />
       <header className="application-header">
         <div className="application-header__inner">
           <div><Brand href="/" /><span>{configuration ? `Applying as ${configuration.label}` : "Choose a role"}</span></div>
@@ -554,7 +454,6 @@ export function ApplicationExperience({ onExit }) {
           data-scroll-owner="document"
           noValidate
           onSubmit={(event) => { event.preventDefault(); submit(); }}
-          ref={formRef}
         >
           {(role ? checkpointContents : checkpointContents.slice(0, 1)).map((content, index) => (
             <section

@@ -2,29 +2,20 @@ import assert from "node:assert/strict";
 import { readFile, readdir, stat } from "node:fs/promises";
 import test from "node:test";
 import {
-  careersSequence,
-  getSequenceFramePath,
-  getSequenceSceneFrame,
-  getSequenceSegment,
-} from "../src/careers/developerSequence.js";
+  careersImageSequence,
+  getCareersFramePath,
+} from "../src/careers/careersImageSequence.js";
 
 test("addresses all 192 optimized WebP delivery frames", () => {
-  assert.equal(careersSequence.frameCount, 192);
-  assert.equal(careersSequence.maxCanvasWidth, 3840);
-  assert.equal(careersSequence.maxCanvasHeight, 2160);
-  assert.equal(careersSequence.interpolateFrames, true);
-  assert.equal(careersSequence.preloadRadius, 4);
-  assert.equal(careersSequence.motionPreloadRadius, 6);
-  assert.equal(careersSequence.initialPreloadFrames, 20);
-  assert.equal(careersSequence.maxCachedFrames, 20);
-  assert.equal(careersSequence.maxConcurrentLoads, 4);
-  assert.ok(careersSequence.minimumPlaybackFps >= 24);
-  assert.equal(careersSequence.maxFrameAdvancePerSecond, 42);
-  assert.equal(careersSequence.maximumAnimationDeltaMs, 32);
-  assert.ok(careersSequence.smoothingTimeConstantMs > 0);
-  assert.equal(careersSequence.extension, "webp");
-  assert.equal(getSequenceFramePath(0).endsWith("ezgif-frame-001.webp"), true);
-  assert.equal(getSequenceFramePath(191).endsWith("ezgif-frame-192.webp"), true);
+  assert.equal(careersImageSequence.frameCount, 192);
+  assert.equal(careersImageSequence.maxCanvasWidth, 3840);
+  assert.equal(careersImageSequence.maxCanvasHeight, 2160);
+  assert.equal(careersImageSequence.preloadConcurrency, 4);
+  assert.equal(careersImageSequence.extension, "webp");
+  assert.equal(getCareersFramePath(0).endsWith("ezgif-frame-001.webp"), true);
+  assert.equal(getCareersFramePath(191).endsWith("ezgif-frame-192.webp"), true);
+  assert.equal(getCareersFramePath(-20), getCareersFramePath(0));
+  assert.equal(getCareersFramePath(400), getCareersFramePath(191));
 });
 
 test("ships a complete bounded-size WebP delivery sequence", async () => {
@@ -36,78 +27,47 @@ test("ships a complete bounded-size WebP delivery sequence", async () => {
     frameNames.map((name) => stat(new URL(name, frameDirectory)).then((file) => file.size)),
   );
 
-  assert.equal(frameNames.length, careersSequence.frameCount);
+  assert.equal(frameNames.length, careersImageSequence.frameCount);
   assert.equal(frameNames[0], "ezgif-frame-001.webp");
   assert.equal(frameNames.at(-1), "ezgif-frame-192.webp");
   assert.ok(frameSizes.every((size) => size > 0));
   assert.ok(frameSizes.reduce((total, size) => total + size, 0) < 16_000_000);
 });
 
-test("divides the sequence into seven continuous application transitions", () => {
-  const segments = Array.from({ length: 7 }, (_, index) => getSequenceSegment(index));
+test("uses a new sticky Canvas scrub engine with progressive deduplicated loading", async () => {
+  const [component, hook, preloader, css] = await Promise.all([
+    readFile(new URL("../src/components/careers/CareersImageSequence.jsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/hooks/useImageSequence.js", import.meta.url), "utf8"),
+    readFile(new URL("../src/utils/preloadFrames.js", import.meta.url), "utf8"),
+    readFile(new URL("../src/app/careers-scroll.css", import.meta.url), "utf8"),
+  ]);
 
-  assert.deepEqual(segments[0], { start: 0, end: 27 });
-  assert.deepEqual(segments[6], { start: 164, end: 191 });
-  segments.slice(1).forEach((segment, index) => {
-    assert.equal(segment.start, segments[index].end);
-  });
-  assert.deepEqual(
-    Array.from({ length: 8 }, (_, index) => getSequenceSceneFrame(index)),
-    [0, 27, 55, 82, 109, 136, 164, 191],
-  );
+  assert.match(component, /aria-hidden="true"/);
+  assert.match(component, /<canvas ref=\{canvasRef\}/);
+  assert.match(component, /scrollHeight = "100%"/);
+  assert.doesNotMatch(component, /values\.|name|email|evidenceUrl|answer/);
+  assert.match(hook, /prefers-reduced-motion: reduce/);
+  assert.match(hook, /import\("gsap\/ScrollTrigger"\)/);
+  assert.match(hook, /scrub: true/);
+  assert.match(hook, /onUpdate: \(\{ progress \}\) => renderProgress\(progress\)/);
+  assert.match(hook, /Math\.floor\(normalizedProgress \* \(config\.frameCount - 1\)\)/);
+  assert.match(hook, /window\.addEventListener\("scroll", onScroll, \{ passive: true \}\)/);
+  assert.match(hook, /window\.requestAnimationFrame/);
+  assert.match(hook, /frameIndex === previousFrameRef\.current/);
+  assert.match(hook, /preloader\.load\(0, \{ priority: true \}\)/);
+  assert.match(hook, /imageSmoothingQuality = "high"/);
+  assert.match(hook, /const scale = Math\.max/);
+  assert.doesNotMatch(hook, /useState|setInterval|autoplay|loop|globalAlpha/);
+  assert.match(preloader, /const records = new Map\(\)/);
+  assert.match(preloader, /if \(existing\)/);
+  assert.match(preloader, /new Image\(\)/);
+  assert.match(preloader, /requestIdleCallback/);
+  assert.match(css, /\.careers-sequence__sticky \{[\s\S]*position: sticky;[\s\S]*top: 0;[\s\S]*height: 100vh;/);
+  assert.match(css, /\.careers-sequence canvas \{[\s\S]*width: 100%;[\s\S]*height: 100%;/);
+  assert.match(css, /background-image: url\("\/images\/careers\/frames\/ezgif-frame-001\.webp"\);/);
 });
 
-test("keeps applicant values outside the decorative animation engine", async () => {
-  const source = await readFile(
-    new URL("../src/components/careers/DeveloperSequenceCanvas.jsx", import.meta.url),
-    "utf8",
-  );
-  assert.match(source, /aria-hidden="true"/);
-  assert.doesNotMatch(source, /values\.|name|email|evidenceUrl|answer/);
-  assert.match(source, /prefers-reduced-motion: reduce/);
-  assert.match(source, /window\.matchMedia\("\(max-width: 640px\)"\)/);
-  assert.match(source, /dataset\.playbackMode = "mobile-static"/);
-  assert.doesNotMatch(source, /onLoadingChange/);
-  assert.match(source, /ResizeObserver/);
-  assert.match(source, /imageSmoothingQuality = "high"/);
-  assert.match(source, /careersSequence\.maxCanvasWidth/);
-  assert.match(source, /window\.addEventListener\("scroll"/);
-  assert.match(source, /dataset\.playbackMode = "scroll"/);
-  assert.match(source, /requestFrame\(frameIndex\)/);
-  assert.match(source, /window\.requestAnimationFrame\(animateTowardTarget\)/);
-  assert.match(source, /window\.cancelAnimationFrame\(animationRequestRef\.current\);[\s\S]*animationRequestRef\.current = 0;/);
-  assert.match(source, /scrollRequestRef\.current = 0;/);
-  assert.match(source, /lastAnimationTimeRef\.current = 0;/);
-  assert.match(source, /context\.globalAlpha = blend/);
-  assert.match(source, /Math\.exp\(-elapsed \/ careersSequence\.smoothingTimeConstantMs\)/);
-  assert.match(source, /loadQueueRef/);
-  assert.match(source, /activeLoadsRef\.current < careersSequence\.maxConcurrentLoads/);
-  assert.match(source, /framesRef\.current\.size > careersSequence\.maxCachedFrames/);
-  assert.match(source, /releaseImage/);
-  assert.match(source, /const didDraw = drawFramePosition\(nextPosition\)/);
-  assert.match(source, /if \(didDraw\) displayedFrameRef\.current = nextPosition/);
-  assert.match(source, /else loadFramePair\(nextPosition, true\)/);
-  assert.match(source, /careersSequence\.motionPreloadRadius/);
-  assert.match(source, /const maximumStep = careersSequence\.maxFrameAdvancePerSecond \* \(elapsed \/ 1000\)/);
-  assert.match(source, /const boundedStep = clamp\(smoothedStep, -maximumStep, maximumStep\)/);
-  assert.match(source, /Math\.min\(timestamp - lastAnimationTimeRef\.current, careersSequence\.maximumAnimationDeltaMs\)/);
-  assert.match(source, /index < careersSequence\.initialPreloadFrames/);
-  assert.match(source, /framesRef\.current\.size < careersSequence\.initialPreloadFrames/);
-  assert.match(source, /const loadFrameRef = useRef\(null\)/);
-  assert.match(source, /loadFrameRef\.current = loadFrame/);
-  assert.match(source, /loadFrameRef\.current\(0, \{ priority: true \}\)/);
-  assert.match(source, /for \(let index = 1; index < careersSequence\.initialPreloadFrames; index \+= 1\)/);
-  assert.match(source, /\}, \[enabled, isMobile, updateFromScroll\]\);/);
-  assert.match(source, /loadQueueRef\.current\.findIndex/);
-  assert.match(source, /Math\.abs\(index - displayedPosition\)/);
-  assert.doesNotMatch(source, /clearRect/);
-  assert.doesNotMatch(source, /loadFramePair\(nextPosition, true\)\.then/);
-  assert.match(source, /dataset\.ready = "true"/);
-  assert.doesNotMatch(source, /drawTokenRef/);
-  assert.doesNotMatch(source, /setInterval|ambientFramesPerSecond|boostedFramesPerSecond|playSegment/);
-});
-
-test("unlocks one freely scrollable question set for every role", async () => {
+test("unlocks one natively scrollable question set for every role", async () => {
   const source = await readFile(
     new URL("../src/components/ApplicationExperience.jsx", import.meta.url),
     "utf8",
@@ -134,35 +94,18 @@ test("unlocks one freely scrollable question set for every role", async () => {
   assert.match(source, /application-scroll-flow/);
   assert.match(source, /application-checkpoint/);
   assert.match(source, /role \? checkpointContents : checkpointContents\.slice\(0, 1\)/);
-  assert.equal(source.match(/<CareersSequenceCanvas/g)?.length, 1);
+  assert.match(source, /<CareersImageSequence \/>/);
+  assert.doesNotMatch(source, /CareersSequenceCanvas|DeveloperSequenceCanvas/);
   assert.match(source, /Object\.entries\(roleConfigurations\)/);
-  assert.match(source, /addEventListener\("wheel", routeApplicationWheel, \{ capture: true, passive: false \}\)/);
-  assert.match(source, /removeEventListener\("wheel", routeApplicationWheel, \{ capture: true \}\)/);
   assert.match(source, /data-scroll-owner="document"/);
   assert.match(source, /const \[progressValue, setProgressValue\] = useState\(1\)/);
   assert.match(source, /value=\{progressValue\}/);
   assert.match(source, /nextProgress \+= segmentFraction/);
   assert.doesNotMatch(source, /value=\{step \+ 1\}/);
-  assert.match(source, /const applicationWheelSpeed = 1\.65/);
-  assert.match(source, /const mobileApplicationWheelSpeed = 2\.35/);
-  assert.match(source, /const mobileCardTouchScrollSpeed = 1\.35/);
-  assert.match(source, /window\.matchMedia\("\(max-width: 640px\)"\)\.matches/);
   assert.doesNotMatch(source, /application-mobile-statement/);
   assert.doesNotMatch(source, /Preparing image|Saving|Saved on this device|saveStatus|isSequenceLoading/);
-  assert.match(source, /const scrollElement = document\.scrollingElement \|\| document\.documentElement/);
-  assert.match(source, /scrollElement\.scrollTop \+= verticalDelta \* wheelSpeed/);
-  assert.match(source, /const roleRef = useRef\(null\)/);
-  assert.match(source, /roleRef\.current = role/);
-  assert.match(source, /!roleRef\.current[\s\S]*!event\.target\.closest\("\.application-checkpoint__card"\)/);
-  assert.match(source, /Math\.hypot\(totalX, totalY\) < 12/);
-  assert.match(source, /verticalGesture = Math\.abs\(totalY\) > Math\.abs\(totalX\)/);
-  assert.match(source, /!verticalGesture \|\| !event\.cancelable/);
-  assert.match(source, /scrollElement\.scrollTop \+= \(lastTouchY - touch\.clientY\) \* mobileCardTouchScrollSpeed/);
-  assert.match(source, /addEventListener\("touchmove", onTouchMove, \{ capture: true, passive: false \}\)/);
-  assert.match(source, /removeEventListener\("touchmove", onTouchMove, \{ capture: true \}\)/);
-  assert.match(source, /\}, \[showExitConfirmation, submissionState\]\);/);
-  assert.doesNotMatch(source, /touchVelocity|mobileTouchInertia/);
-  assert.match(source, /event\.ctrlKey/);
+  assert.doesNotMatch(source, /addEventListener\("wheel"|preventDefault\(\)[\s\S]{0,240}scrollTop|addEventListener\("touchmove"/);
+  assert.doesNotMatch(source, /applicationWheelSpeed|mobileApplicationWheelSpeed|mobileCardTouchScrollSpeed|touchVelocity|mobileTouchInertia/);
   assert.doesNotMatch(source, /ScrollPrompt|CheckpointActions|continueFrom|application-track|application-slide|--slide-offset/);
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.application-checkpoint \{ min-height: calc\(100dvh - 66px\);/);
   assert.match(css, /\.application-checkpoint:first-child \{ min-height: calc\(100dvh - 66px\); \}/);
@@ -175,13 +118,12 @@ test("unlocks one freely scrollable question set for every role", async () => {
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.application-field input,[\s\S]*\.application-role-option,[\s\S]*\.application-choice__options span,[\s\S]*\.application-actions button[\s\S]*touch-action: auto;/);
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.application-checkpoint__card \{ overflow: visible; border-radius: 14px; \}/);
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.application-field textarea \{ resize: none; \}/);
-  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.careers-sequence \{[\s\S]*background-image: var\(--careers-sequence-fallback\);/);
-  assert.match(css, /@media \(max-width: 640px\)[\s\S]*\.careers-sequence canvas \{\s*display: none;/);
+  assert.match(css, /\.careers-sequence__sticky \{[\s\S]*background-image: url\("\/images\/careers\/frames\/ezgif-frame-001\.webp"\);/);
   assert.match(css, /\.application-checkpoint__card \{[\s\S]*border: 1px solid var\(--border-strong\);[\s\S]*background: rgb\(252 252 251 \/ 0\.94\);[\s\S]*box-shadow: none;/);
   assert.match(css, /\.application-main__meta \{[\s\S]*background: rgb\(238 243 248 \/ 0\.72\);/);
   assert.match(css, /\.application-role-option\[aria-pressed="true"\] \{[\s\S]*background: rgb\(238 243 248 \/ 0\.96\);/);
   assert.doesNotMatch(css, /rgb\(17 17 17/);
   assert.doesNotMatch(css, /application-mobile-statement/);
-  assert.match(css, /\.careers-sequence canvas \{[\s\S]*opacity: 0;/);
   assert.match(css, /\.careers-sequence\[data-ready="true"\] canvas \{\s*opacity: 1;/);
+  assert.doesNotMatch(css, /data-playback-started/);
 });
