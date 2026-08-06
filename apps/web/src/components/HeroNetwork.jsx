@@ -1,8 +1,9 @@
+import { BackgroundBeams } from "@/components/ui/background-beams";
+
 export function HeroNetwork({ variant = "home" }) {
   return (
     <div aria-hidden="true" className={`hero-network hero-network--${variant}`}>
-      <div className="hero-network__grid" aria-hidden="true" />
-      <div className="hero-network__glow" aria-hidden="true" />
+      {variant === "home" ? <BackgroundBeams className="hero-beams" /> : null}
     </div>
   );
 }

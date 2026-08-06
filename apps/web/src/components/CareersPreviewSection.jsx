@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ActionLink } from "./ActionLink.jsx";
+import { Brand } from "./Brand.jsx";
 import { RevealText } from "./RevealText.jsx";
+import { BackgroundBeams } from "@/components/ui/background-beams";
 
 export function CareersPreviewSection({
   chapterIndex = 5,
@@ -50,10 +52,18 @@ export function CareersPreviewSection({
       ref={sectionRef}
       aria-labelledby="careers-preview-title"
     >
+      <Brand decorative className="careers-preview__watermark" />
       <div className="careers-preview__inner">
+        <BackgroundBeams className="careers-preview__beams" />
         <div className="careers-preview__transition-plane">
           <header className="careers-preview__intro">
-            <p className="careers-preview__label">Careers</p>
+            <RevealText
+              as="p"
+              className="careers-preview__label careers-preview__reveal"
+              delay={0}
+            >
+              Careers
+            </RevealText>
             <RevealText
               as="h2"
               className="careers-preview__title careers-preview__reveal"

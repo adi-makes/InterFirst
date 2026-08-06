@@ -1,101 +1,60 @@
+import { BackgroundBeams } from "@/components/ui/background-beams";
 import { ActionLink } from "./ActionLink.jsx";
 import { HeroNetwork } from "./HeroNetwork.jsx";
-import { NextSectionCue } from "./NextSectionCue.jsx";
+import { RevealText } from "./RevealText.jsx";
 
-export function Hero({ isReady = true }) {
+export function Hero() {
   return (
-    <section
-      className={`hero ${isReady ? "hero--intro-ready" : "hero--intro-pending"}`}
-      aria-labelledby="hero-title"
-      data-intro-ready={isReady}
-    >
-      <HeroNetwork />
-      <div className="hero__grid">
-        <div className="hero__transition-plane">
-          <div className="hero__primary">
-            <div className="hero__index">
-              <p>Product · Systems · Company</p>
+    <>
+      <section className="hero hero--desktop" aria-labelledby="hero-title">
+        <HeroNetwork />
+        <div className="hero__grid">
+          <div className="hero__transition-plane">
+            <div className="hero__primary">
+              <div className="hero__index"><p>Product · Systems · Company</p></div>
+              <div className="hero__content">
+                <h1 id="hero-title" tabIndex="-1">
+                  <span className="hero__line">We make</span>
+                  <span className="hero__line hero__line--accent">internet-first</span>
+                  <span className="hero__line">companies.</span>
+                </h1>
+              </div>
             </div>
-
-            <div className="hero__content">
-              <h1 id="hero-title" tabIndex="-1">
-                <span className="sr-only">We make internet-first companies.</span>
-                <span aria-hidden="true">
-                  <span className="hero__line">
-                    <span className="hero__word-clip">
-                      <span className="hero__word" style={{ "--word-index": 0 }}>
-                        We make
-                      </span>
-                    </span>
-                  </span>
-                  <span className="hero__line">
-                    <span className="hero__word-clip">
-                      <span className="hero__word" style={{ "--word-index": 1 }}>
-                        internet-first
-                      </span>
-                    </span>
-                  </span>
-                  <span className="hero__line">
-                    <span className="hero__word-clip">
-                      <span className="hero__word" style={{ "--word-index": 2 }}>
-                        <span className="hero__rotator-viewport">
-                          <span className="hero__rotator-sizer">companies.</span>
-                          <span className="hero__rotator-cube">
-                            <span
-                              className="hero__rotator-face"
-                              style={{ "--face-index": 0 }}
-                            >
-                              companies.
-                            </span>
-                            <span
-                              className="hero__rotator-face"
-                              style={{ "--face-index": 1 }}
-                            >
-                              systems.
-                            </span>
-                            <span
-                              className="hero__rotator-face"
-                              style={{ "--face-index": 2 }}
-                            >
-                              products.
-                            </span>
-                            <span
-                              className="hero__rotator-face"
-                              style={{ "--face-index": 3 }}
-                            >
-                              companies.
-                            </span>
-                          </span>
-                        </span>
-                      </span>
-                    </span>
-                  </span>
-                </span>
-              </h1>
-            </div>
+            <aside className="hero__support" aria-label="About InterFirst">
+              <p className="hero__description">
+                <span>We design the product, systems, and company</span>
+                <span>as one connected whole from day one.</span>
+              </p>
+              <div className="hero__actions"><ActionLink href="/careers">See Open Roles</ActionLink></div>
+            </aside>
           </div>
-          <aside className="hero__support" aria-label="About InterFirst">
-            <p className="hero__description">
-              <span className="hero__description-desktop">
-                We design the product, systems, and company as one connected whole from
-                day one.
-              </span>
-              <span className="hero__description-mobile">
-                We design products, systems, and companies as one.
-              </span>
-            </p>
-            <div className="hero__actions">
-              <ActionLink href="/careers">
-                See Open Roles
-              </ActionLink>
-            </div>
-          </aside>
         </div>
-        <NextSectionCue
-          href="#internet-first-meaning"
-          label="Scroll to explore"
-        />
-      </div>
-    </section>
+      </section>
+
+      <section className="mobile-home-hero mobile-home-hero--entered" aria-labelledby="mobile-hero-title">
+        <div className="mobile-home-hero__background" aria-hidden="true">
+          <BackgroundBeams className="mobile-home-hero__beams" />
+        </div>
+        <div className="mobile-home-hero__inner">
+          <div className="mobile-home-hero__content">
+            <RevealText as="p" className="mobile-home-hero__eyebrow" delay={0}>
+              Product <span>·</span> Systems <span>·</span> Company
+            </RevealText>
+            <h1 id="mobile-hero-title" tabIndex="-1">
+              <RevealText as="span" delay={70}>We make</RevealText>
+              <RevealText as="span" className="mobile-home-hero__accent" delay={140}>internet-first</RevealText>
+              <RevealText as="span" delay={210}>companies.</RevealText>
+            </h1>
+            <RevealText as="p" className="mobile-home-hero__description" delay={280}>
+              <span>We design the product, systems, and company</span>
+              <span>as one connected whole from day one.</span>
+            </RevealText>
+            <RevealText as="div" className="mobile-home-hero__action-reveal" delay={350}>
+              <ActionLink className="mobile-home-hero__action" href="/careers">See Open Roles</ActionLink>
+            </RevealText>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

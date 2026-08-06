@@ -4,6 +4,7 @@ import { NextSectionCue } from "./NextSectionCue.jsx";
 import { RevealText } from "./RevealText.jsx";
 
 const AUTOPLAY_DELAY_MS = 4000;
+const LOOP_RESET_DELAY_MS = 700;
 
 const principles = [
   {
@@ -136,12 +137,13 @@ export function HowWeThinkSection({
 
     let wrapTimer;
     if (displayIndex === principles.length + 1) {
-      wrapTimer = window.setTimeout(() => {
-        const firstSlide = slideRefs.current[1];
-        if (!firstSlide) return;
-        alignSlide(firstSlide, "auto");
-        setDisplayIndex(1);
-      }, prefersReducedMotion ? 0 : 700);
+        wrapTimer = window.setTimeout(() => {
+          const firstSlide = slideRefs.current[1];
+          if (!firstSlide) return;
+          alignSlide(firstSlide, "auto");
+          setActiveIndex(0);
+          setDisplayIndex(1);
+        }, prefersReducedMotion ? 0 : LOOP_RESET_DELAY_MS);
     }
 
     return () => {
