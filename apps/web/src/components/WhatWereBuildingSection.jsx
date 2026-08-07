@@ -1,6 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { ChapterLabel } from "./ChapterLabel.jsx";
-import { NextSectionCue } from "./NextSectionCue.jsx";
 import { RevealText } from "./RevealText.jsx";
 
 const opportunities = [
@@ -80,11 +78,23 @@ export function WhatWereBuildingSection({
       aria-labelledby="what-were-building-title"
     >
       <div className="what-were-building__inner">
-        <div className="what-were-building__transition-plane">
+        <div className="what-were-building__browser">
+          <header className="what-were-building__browser-header" aria-label="What we're building overview">
+            <span className="what-were-building__traffic-lights" aria-hidden="true">
+              <span className="what-were-building__traffic-light what-were-building__traffic-light--red" />
+              <span className="what-were-building__traffic-light what-were-building__traffic-light--yellow" />
+              <span className="what-were-building__traffic-light what-were-building__traffic-light--green" />
+            </span>
+            <span className="what-were-building__browser-search" aria-hidden="true">
+              <span className="what-were-building__browser-search-label">
+                WHAT WE&apos;RE BUILDING
+              </span>
+              <span className="what-were-building__browser-search-icon" />
+            </span>
+            <span className="what-were-building__browser-actions" aria-hidden="true" />
+          </header>
+          <div className="what-were-building__transition-plane">
           <header className="what-were-building__intro">
-            <ChapterLabel className="what-were-building__label">
-              What we&apos;re building
-            </ChapterLabel>
             <RevealText
               as="h2"
               className="what-were-building__title what-were-building__reveal"
@@ -127,9 +137,8 @@ export function WhatWereBuildingSection({
               </li>
             ))}
           </ol>
+          </div>
         </div>
-
-        <NextSectionCue href="#careers" label="View careers" />
       </div>
     </section>
   );

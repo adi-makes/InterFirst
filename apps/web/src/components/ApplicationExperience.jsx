@@ -269,7 +269,6 @@ export function ApplicationExperience({ onExit }) {
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const [submissionState, setSubmissionState] = useState("idle");
   const [announcement, setAnnouncement] = useState("Choose a role to begin.");
-  const configuration = role ? roleConfigurations[role] : null;
   const storageKey = useMemo(() => (role ? draftStorageKey(role) : null), [role]);
   const stepRefCallbacks = useMemo(() => Array.from({ length: 8 }, (_, index) => (node) => { stepControlRefs.current[index] = node; }), []);
 
@@ -440,7 +439,7 @@ export function ApplicationExperience({ onExit }) {
       <CareersImageSequence />
       <header className="application-header">
         <div className="application-header__inner">
-          <div><Brand href="/" /><span>{configuration ? `Applying as ${configuration.label}` : "Choose a role"}</span></div>
+          <div><Brand href="/" /></div>
           <div>
             <button onClick={() => setShowExitConfirmation(true)} type="button">Exit</button>
           </div>

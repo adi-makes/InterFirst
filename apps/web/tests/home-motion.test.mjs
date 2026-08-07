@@ -64,7 +64,7 @@ test("applies responsive InterFirst background beams to the hero", async () => {
   const home = await readSource("src/components/HomePage.jsx");
 
   assert.match(css, /Home remodel: centered learning-style composition/);
-  assert.match(css, /--accent: #5b3df5/);
+  assert.match(css, /--accent: #163e6b/);
   assert.doesNotMatch(css, /brand-loader|brand-module-intro|brand-name-intro/);
   assert.match(css, /html \{[\s\S]{0,100}scrollbar-gutter: stable;/);
   assert.match(heroNetwork, /<BackgroundBeams className="hero-beams" \/>/);
@@ -74,10 +74,10 @@ test("applies responsive InterFirst background beams to the hero", async () => {
   assert.match(careersPreview, /<BackgroundBeams className="careers-preview__beams" \/>/);
   assert.match(careersPreview, /<ActionLink href="\/careers">See Open Roles<\/ActionLink>/);
   assert.match(home, /<div className="home-closing" aria-label="InterFirst closing section">/);
-  assert.match(css, /\.home-experience \.hero-beams linearGradient stop:nth-of-type\(2\) \{ stop-color: #5b3df5; \}/);
+  assert.match(css, /\.home-experience \.hero-beams linearGradient stop:nth-of-type\(2\) \{ stop-color: #163e6b; \}/);
   assert.match(css, /main > section:not\(.hero\):not\(.mobile-home-hero\):not\(.careers-preview\)/);
   assert.match(css, /\.home-experience \.hero h1 \{[\s\S]{0,300}font-size: clamp\(60px, 6\.15vw, 94px\)/);
-  assert.match(css, /@media \(max-width: 768px\)[\s\S]{0,1800}\.home-experience \.mobile-home-hero__beams,[\s\S]{0,140}\.home-experience \.careers-preview__beams \{ inset: -12%; width: auto; height: auto; opacity: \.98; \}/);
+  assert.match(css, /@media \(max-width: 768px\)[\s\S]{0,1800}\.home-experience \.mobile-home-hero__beams,[\s\S]{0,220}\.home-experience \.careers-preview__beams \{[\s\S]{0,180}inset: -12%;[\s\S]{0,100}opacity: \.82;[\s\S]{0,140}will-change: transform;/);
   assert.match(css, /\.home-experience \.mobile-home-hero__action \{[\s\S]{0,220}width: min\(calc\(100vw - 90px\), 318px\);/);
   assert.match(css, /home-experience--revealing, \.home-experience--ready\) \.hero__line/);
 });
@@ -89,9 +89,9 @@ test("starts the Hero background beams immediately on load", async () => {
   assert.match(beams, /d=\{paths\.join\(" "\)\}/);
   assert.match(beams, /strokeOpacity="0\.07"/);
   assert.match(beams, /strokeOpacity="0\.25"/);
-  assert.match(beams, /x1: "-20%",[\s\S]{0,80}x2: "20%",[\s\S]{0,80}y1: "-20%",[\s\S]{0,80}y2: "20%"/);
+  assert.match(beams, /initial=\{\{[\s\S]{0,120}x1: "-20%",[\s\S]{0,80}x2: "20%",[\s\S]{0,80}y1: "-20%",[\s\S]{0,80}y2: "20%"/);
   assert.match(beams, /repeat: Infinity,[\s\S]{0,40}delay: 0,/);
-  assert.doesNotMatch(beams, /delay:\s*Math\.random\(\)\s*\*\s*10/);
+  assert.doesNotMatch(beams, /Math\.random/);
 });
 
 test("keeps the mobile Hero and final CTA beam treatments visible", async () => {
@@ -99,7 +99,7 @@ test("keeps the mobile Hero and final CTA beam treatments visible", async () => 
 
   assert.match(css, /\.home-experience \.hero-beams \{ opacity: \.62; \}/);
   assert.match(css, /\.home-experience \.careers-preview__beams \{ position: absolute;[\s\S]{0,120}opacity: \.64;/);
-  assert.match(css, /\.home-experience \.mobile-home-hero__beams,[\s\S]{0,140}\.home-experience \.careers-preview__beams \{ inset: -12%; width: auto; height: auto; opacity: \.98; \}/);
+  assert.match(css, /\.home-experience \.mobile-home-hero__beams,[\s\S]{0,220}\.home-experience \.careers-preview__beams \{[\s\S]{0,180}inset: -12%;[\s\S]{0,100}opacity: \.82;[\s\S]{0,140}will-change: transform;/);
   assert.match(css, /\.home-experience \.mobile-home-hero__beams svg > path:nth-of-type\(n \+ 3\),[\s\S]{0,180}\.home-experience \.careers-preview__beams svg > path:nth-of-type\(n \+ 3\) \{ stroke-opacity: \.8; \}/);
 });
 
@@ -166,24 +166,25 @@ test("uses a standalone content-sized mobile Home Hero with chapter-style reveal
 test("uses the shared section eyebrow and support paragraph treatment in the Hero", async () => {
   const css = await readSource("src/app/globals.css");
 
-  assert.match(css, /\.home-experience \.hero__index \{ min-height: 28px; padding: 5px 12px; border-color: rgb\(30 58 95 \/ 20%\); background: rgb\(255 255 255 \/ 68%\); \}/);
+  assert.match(css, /\.home-experience \.hero__index \{ min-height: 28px; padding: 5px 12px; border-color: #c9d8ea; background: rgb\(22 62 107 \/ 3%\); \}/);
   assert.match(css, /\.home-experience \.hero__index p \{ color: var\(--accent\); font-family: "Geist Mono Variable"/);
   assert.match(css, /\.home-experience \.hero__description \{ max-width: 620px; color: var\(--text-secondary\); font-size: var\(--home-section-support-size\); font-weight: 400; line-height: 1\.5; letter-spacing: -\.01em; \}/);
 });
 
-test("adds a desktop-only bottom scroll navigator to every page", async () => {
+test("removes every scroll navigation indicator from the shared page and section surfaces", async () => {
   const home = await readSource("src/components/HomePage.jsx");
   const careers = await readSource("src/components/CareersPage.jsx");
-  const navigator = await readSource("src/components/PageScrollNavigator.jsx");
+  const think = await readSource("src/components/HowWeThinkSection.jsx");
+  const build = await readSource("src/components/HowWeBuildSection.jsx");
+  const building = await readSource("src/components/WhatWereBuildingSection.jsx");
   const css = await readSource("src/app/globals.css");
 
-  assert.match(home, /<PageScrollNavigator href="#internet-first-meaning" label="Scroll to explore" \/>/);
-  assert.match(careers, /<PageScrollNavigator href="#application-checkpoint-2" label="Continue application" \/>/);
-  assert.match(navigator, /className=\{`page-scroll-navigator/);
-  assert.match(css, /\.page-scroll-navigator--idle-stopped \{ opacity: 0; visibility: hidden; pointer-events: none; \}/);
-  assert.match(css, /\.page-scroll-navigator \{[\s\S]{0,240}position: fixed;[\s\S]{0,180}bottom: 16px;/);
-  assert.match(css, /@media \(max-width: 768px\)[\s\S]{0,500}\.next-section-cue \{\s*display: none;/);
-  assert.match(css, /@media \(max-width: 768px\)[\s\S]{0,800}\.page-scroll-navigator \{\s*display: none;/);
+  assert.doesNotMatch(home, /PageScrollNavigator|Scroll to explore|Explore Our Principles|Explore our principles/);
+  assert.doesNotMatch(careers, /PageScrollNavigator|Scroll Down|Scroll to/);
+  assert.doesNotMatch(think, /NextSectionCue|See how we build/);
+  assert.doesNotMatch(build, /NextSectionCue|See what we're building/);
+  assert.doesNotMatch(building, /NextSectionCue|View careers/);
+  assert.doesNotMatch(css, /next-section-cue|page-scroll-navigator|next-section-cue-idle/);
 });
 
 test("gives the final Careers CTA the shared eyebrow badge", async () => {
@@ -192,7 +193,33 @@ test("gives the final Careers CTA the shared eyebrow badge", async () => {
 
   assert.match(careersPreview, /className="careers-preview__label careers-preview__reveal"/);
   assert.match(careersPreview, />\s*Careers\s*</);
-  assert.match(css, /\.home-experience \.careers-preview__label \{ min-height: 28px; padding: 5px 12px; margin: 0; border: 1px solid rgb\(30 58 95 \/ 20%\); border-radius: 999px;/);
+  assert.match(css, /\.home-experience \.careers-preview__label \{ min-height: 28px; padding: 5px 12px; margin: 0; border: 1px solid #c9d8ea; border-radius: 999px;/);
+});
+
+test("uses the browser-window treatment only for What We're Building", async () => {
+  const section = await readSource("src/components/WhatWereBuildingSection.jsx");
+  const css = await readSource("src/app/globals.css");
+
+  assert.match(section, /what-were-building__browser/);
+  assert.match(section, /what-were-building__browser-header/);
+  assert.match(section, /traffic-light--red/);
+  assert.match(section, /traffic-light--yellow/);
+  assert.match(section, /traffic-light--green/);
+  assert.match(section, /what-were-building__browser-search/);
+  assert.match(section, /what-were-building__browser-search-label/);
+  assert.match(section, /WHAT WE&apos;RE BUILDING/);
+  assert.doesNotMatch(section, /what-were-building__label|ChapterLabel/);
+  assert.match(css, /\.home-experience main > section\.what-were-building \{[\s\S]{0,320}background-color: #f6f9fc;[\s\S]{0,320}radial-gradient\(circle at center, rgb\(22 62 107 \/ 5%\) 0%, rgb\(22 62 107 \/ 2%\) 35%, #f6f9fc 75%\),[\s\S]{0,160}linear-gradient\(to right/);
+  assert.match(css, /\.what-were-building__transition-plane \{[\s\S]{0,320}background-image:[\s\S]{0,260}linear-gradient\(to right/);
+  assert.match(css, /\.what-were-building__browser \{[\s\S]{0,260}border: 1px solid #e6ebf2;[\s\S]{0,120}border-radius: 30px;[\s\S]{0,220}background: #ffffff;[\s\S]{0,220}box-shadow:/);
+  assert.match(css, /\.what-were-building__browser-header \{[\s\S]{0,220}background: #f7f7f8;[\s\S]{0,140}border-bottom: 1px solid #e6ebf2;/);
+  assert.match(css, /\.what-were-building__browser-search \{[\s\S]{0,180}width: clamp\(220px, 30vw, 400px\);[\s\S]{0,160}border-radius: 999px;/);
+  assert.match(css, /\.what-were-building__browser-search-label \{[\s\S]{0,220}font-family: "Geist Mono Variable"/);
+  assert.match(css, /\.what-were-building__browser-search-label \{[\s\S]{0,300}text-align: center;/);
+  assert.match(css, /\.what-were-building__browser-search-icon \{[\s\S]{0,120}position: absolute;[\s\S]{0,80}right: 12px;/);
+  assert.match(css, /\.what-were-building__opportunity h3::after \{[\s\S]{0,180}transform: scaleX\(0\);/);
+  assert.match(css, /\.what-were-building__opportunity:hover \.what-were-building__opportunity-number,[\s\S]{0,180}text-shadow:/);
+  assert.doesNotMatch(css, /\.what-were-building__opportunity \{[\s\S]{0,220}box-shadow:/);
 });
 
 test("updates only the principle card boxes with the reference treatment", async () => {
@@ -201,14 +228,43 @@ test("updates only the principle card boxes with the reference treatment", async
 
   assert.doesNotMatch(section, /meaning-card__icon|meaning-card__rule/);
   assert.match(css, /\.meaning-card \{\s*display: flex;\s*min-height: 196px;[\s\S]{0,220}border-radius: 16px;[\s\S]{0,100}box-shadow: none;/);
-  assert.match(css, /\.home-experience \.meaning-card,[\s\S]{0,160}\.home-experience \.how-we-think__carousel-card,[\s\S]{0,160}\.home-experience \.how-we-build__step \{[\s\S]{0,160}background: #FCFCFB;/);
-  assert.match(css, /\.home-experience \.meaning-card:hover,[\s\S]{0,180}border-color: #5b3df5;[\s\S]{0,120}transform: translateY\(-6px\);/);
+  assert.match(css, /\.home-experience \.meaning-card,[\s\S]{0,160}\.home-experience \.how-we-think__carousel-card,[\s\S]{0,160}\.home-experience \.how-we-build__step \{[\s\S]{0,160}background: #FFFFFF;/);
+  assert.match(css, /\.home-experience \.meaning-card:hover,[\s\S]{0,180}border-color: #163e6b;[\s\S]{0,120}transform: translateY\(-6px\);/);
 });
 
-test("uses an off-white background for Home cards", async () => {
+test("drives the Internet-first cards from native vertical scroll within a scoped sticky frame", async () => {
+  const section = await readSource("src/components/InternetFirstMeaningSection.jsx");
+  const styles = await readSource("src/components/InternetFirstMeaningSection.module.css");
+
+  assert.match(section, /window\.addEventListener\("scroll", requestUpdate, \{ passive: true \}\)/);
+  assert.match(section, /new ResizeObserver\(requestUpdate\)/);
+  assert.match(section, /prefers-reduced-motion: reduce/);
+  assert.match(section, /window\.innerWidth <= 768/);
+  assert.match(section, /const desktopCardTimings = \[/);
+  assert.match(section, /--meaning-card-entry-x/);
+  assert.match(section, /const entryDistance = window\.innerWidth \+ card\.offsetWidth;/);
+  assert.match(section, /\$\{\(entryDistance \* \(1 - entryProgress\)\)\.toFixed\(2\)\}px/);
+  assert.doesNotMatch(section, /setProperty\(\s*"--meaning-card-blur"/);
+  assert.doesNotMatch(section, /Math\.round\(resolvedPosition/);
+  assert.doesNotMatch(section, /NextSectionCue/);
+  assert.match(styles, /\.section \{ display: block; min-height: 500vh; overflow: clip; \}/);
+  assert.match(styles, /\.stickyFrame \{ position: sticky; top: 0; height: 100vh; overflow: hidden; \}/);
+  assert.match(styles, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\); gap: clamp\(32px, 3vw, 48px\);/);
+  assert.match(styles, /min-height: clamp\(220px, 26vh, 260px\);/);
+  assert.match(styles, /filter: none !important; transform: translate3d\(var\(--meaning-card-entry-x, 150vw\)/);
+  assert.doesNotMatch(styles, /filter: blur/);
+  assert.match(styles, /border-color: color-mix\(in srgb, var\(--border-strong\) 82%, var\(--accent\)\); outline: 1px solid color-mix\(in srgb, var\(--border-strong\) 82%, var\(--accent\)\); outline-offset: -1px;/);
+  assert.match(styles, /\.card\[data-active\] \{[\s\S]{0,180}outline-color: color-mix/);
+  assert.match(styles, /@media \(max-width: 768px\) \{ .section, .scrollSpace \{ min-height: 400vh; height: 400vh; \}/);
+  assert.match(styles, /@media \(max-width: 768px\)[\s\S]{0,900}\.track \{ top: clamp\(352px, 43\.15vh, 366px\); display: flex;[\s\S]{0,180}gap: 32px; transform: translate3d\(var\(--meaning-track-x, 150vw\), 0, 0\); \}/);
+  assert.match(styles, /width: min\(86vw, 380px\);[\s\S]{0,180}filter: none !important;/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\) \{ .section, .scrollSpace \{ min-height: 0; height: auto; overflow: visible; \}/);
+});
+
+test("uses the white background for Home cards", async () => {
   const css = await readSource("src/app/globals.css");
 
-  assert.match(css, /\.home-experience \.meaning-card,[\s\S]{0,160}\.home-experience \.how-we-think__carousel-card,[\s\S]{0,160}\.home-experience \.how-we-build__step \{[\s\S]{0,160}background: #FCFCFB;/);
+  assert.match(css, /\.home-experience \.meaning-card,[\s\S]{0,160}\.home-experience \.how-we-think__carousel-card,[\s\S]{0,160}\.home-experience \.how-we-build__step \{[\s\S]{0,160}background: #FFFFFF;/);
 });
 
 test("loops How We Think from the fourth principle back to the first", async () => {

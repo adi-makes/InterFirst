@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { ChapterLabel } from "./ChapterLabel.jsx";
-import { NextSectionCue } from "./NextSectionCue.jsx";
 import { RevealText } from "./RevealText.jsx";
 
 const steps = [
@@ -121,11 +120,6 @@ export function HowWeBuildSection({
             ))}
           </ol>
         </div>
-
-        <NextSectionCue
-          href="#what-were-building"
-          label="See what we're building"
-        />
       </div>
     </section>
   );

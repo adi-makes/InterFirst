@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { ChapterLabel } from "./ChapterLabel.jsx";
-import { NextSectionCue } from "./NextSectionCue.jsx";
 import { RevealText } from "./RevealText.jsx";
 
 const AUTOPLAY_DELAY_MS = 4000;
@@ -260,8 +259,6 @@ export function HowWeThinkSection({
             </div>
           </div>
         </div>
-
-        <NextSectionCue href="#how-we-build" label="See how we build" />
       </div>
     </section>
   );

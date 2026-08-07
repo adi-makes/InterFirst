@@ -6,8 +6,8 @@ export default function manifest() {
       "InterFirst builds internet-first companies by designing the product, systems, and company as one connected whole.",
     start_url: "/",
     display: "standalone",
-    background_color: "#fafaf8",
-    theme_color: "#fafaf8",
+    background_color: "#ffffff",
+    theme_color: "#ffffff",
     icons: [
       {
         src: "/brand/interfirst-mark.png",
