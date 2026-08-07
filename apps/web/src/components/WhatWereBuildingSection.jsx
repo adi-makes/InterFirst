@@ -120,20 +120,22 @@ export function WhatWereBuildingSection({
                 key={opportunity.title}
                 style={{ "--opportunity-index": index }}
               >
-                <RevealText
-                  as="span"
-                  className="what-were-building__opportunity-number"
-                  delay={230 + index * 105}
-                  aria-hidden="true"
-                >
-                  {String(index + 1).padStart(2, "0")}
-                </RevealText>
-                <RevealText as="h3" delay={275 + index * 105}>
-                  {opportunity.title}
-                </RevealText>
-                <RevealText as="p" delay={330 + index * 105}>
-                  {opportunity.description}
-                </RevealText>
+                <div className="what-were-building__opportunity-content">
+                  <RevealText
+                    as="span"
+                    className="what-were-building__opportunity-number"
+                    delay={230 + index * 105}
+                    aria-hidden="true"
+                  >
+                    {String(index + 1).padStart(2, "0")}
+                  </RevealText>
+                  <RevealText as="h3" delay={275 + index * 105}>
+                    {opportunity.title}
+                  </RevealText>
+                  <RevealText as="p" delay={330 + index * 105}>
+                    {opportunity.description}
+                  </RevealText>
+                </div>
               </li>
             ))}
           </ol>

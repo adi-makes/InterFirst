@@ -220,6 +220,11 @@ test("uses the browser-window treatment only for What We're Building", async () 
   assert.match(css, /\.what-were-building__opportunity h3::after \{[\s\S]{0,180}transform: scaleX\(0\);/);
   assert.match(css, /\.what-were-building__opportunity:hover \.what-were-building__opportunity-number,[\s\S]{0,180}text-shadow:/);
   assert.doesNotMatch(css, /\.what-were-building__opportunity \{[\s\S]{0,220}box-shadow:/);
+  assert.match(section, /what-were-building__opportunity-content/);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]{0,240}\.what-were-building__transition-plane \{\s*padding: 48px 24px;/);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]{0,520}\.what-were-building__opportunities \{[\s\S]{0,240}display: flex;[\s\S]{0,180}row-gap: 56px;/);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]{0,900}\.what-were-building__opportunity h3 \{\s*margin-top: 12px;/);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]{0,1100}\.what-were-building__opportunity > \.what-were-building__opportunity-content > p \{[\s\S]{0,120}max-width: 270px;[\s\S]{0,120}margin-top: 20px;/);
 });
 
 test("updates only the principle card boxes with the reference treatment", async () => {

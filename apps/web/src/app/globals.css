@@ -4686,6 +4686,39 @@ button {
   .what-were-building__opportunity + .what-were-building__opportunity { margin-top: 0; }
 }
 
+@media (max-width: 767px) {
+  .what-were-building__transition-plane {
+    padding: 48px 24px;
+  }
+
+  .what-were-building__opportunities {
+    display: flex;
+    flex-direction: column;
+    row-gap: 56px;
+    margin-top: 48px;
+  }
+
+  .what-were-building__opportunity {
+    width: 100%;
+  }
+
+  .what-were-building__opportunity-content {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .what-were-building__opportunity h3 {
+    margin-top: 12px;
+  }
+
+  .what-were-building__opportunity > .what-were-building__opportunity-content > p {
+    max-width: 270px;
+    margin-top: 20px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .what-were-building::before,
   .what-were-building::after {
